@@ -263,7 +263,7 @@ export default function Home() {
               onClick={() => setShowMealDialog(true)}
               className="bg-white text-orange-600 px-5 py-2 rounded-xl text-sm font-bold hover:bg-orange-50 transition-colors"
             >
-              确认下单
+              选择日期并下单
             </button>
           </div>
         </div>
@@ -352,7 +352,7 @@ export default function Home() {
                 className="flex-[2] flex items-center justify-center gap-1.5 bg-orange-500 text-white py-3 rounded-xl text-sm font-bold hover:bg-orange-600 transition-colors"
               >
                 <Check size={18} />
-                确认下单 ({totalItems} 项)
+                选择日期并下单 ({totalItems} 项)
               </button>
             </div>
           </div>

@@ -61,6 +61,13 @@ export const MEAL_TYPES = [
   { value: "snack", label: "加餐", emoji: "🍪" },
 ] as const;
 
+export const ORDER_STATUS_OPTIONS = [
+  { value: "pending", label: "待接单", emoji: "⏳" },
+  { value: "accepted", label: "已接单", emoji: "✅" },
+  { value: "rejected", label: "已拒绝", emoji: "❌" },
+  { value: "completed", label: "已完成", emoji: "🎉" },
+] as const;
+
 export function getSpiceLabel(level: number): string {
   return SPICE_LEVELS.find((s) => s.value === level)?.label ?? "不辣";
 }
@@ -79,4 +86,12 @@ export function getMealTypeLabel(value: string): string {
 
 export function getMealTypeEmoji(value: string): string {
   return MEAL_TYPES.find((m) => m.value === value)?.emoji ?? "☀️";
+}
+
+export function getOrderStatusLabel(value: string): string {
+  return ORDER_STATUS_OPTIONS.find((item) => item.value === value)?.label ?? "待接单";
+}
+
+export function getOrderStatusEmoji(value: string): string {
+  return ORDER_STATUS_OPTIONS.find((item) => item.value === value)?.emoji ?? "⏳";
 }

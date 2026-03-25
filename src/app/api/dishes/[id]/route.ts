@@ -17,7 +17,9 @@ export async function PUT(
       difficulty,
       prepTime,
       ingredients,
+      ingredientDetails,
       tags,
+      chefNote,
       description,
     } = body;
 
@@ -39,7 +41,10 @@ export async function PUT(
         difficulty: difficulty || undefined,
         prepTime: prepTime === undefined ? undefined : (prepTime ?? null),
         ingredients: ingredients === undefined ? undefined : (ingredients || null),
+        ingredientDetails:
+          ingredientDetails === undefined ? undefined : (ingredientDetails || null),
         tags: tags === undefined ? undefined : (tags || null),
+        chefNote: chefNote === undefined ? undefined : (chefNote || null),
         description: description === undefined ? undefined : (description || null),
       },
     });

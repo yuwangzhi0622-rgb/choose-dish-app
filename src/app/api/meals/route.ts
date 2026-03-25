@@ -10,7 +10,7 @@ export async function GET() {
         },
         mealDishes: { include: { dish: true } },
       },
-      orderBy: { date: "desc" },
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
     });
 
     return NextResponse.json(meals);
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
         mealTime: mealTime || null,
         chef: chef || null,
         personCount: personCount ?? 2,
+        orderStatus: "pending",
         comboId,
         note: note || null,
         mealDishes: {

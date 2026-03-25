@@ -357,7 +357,7 @@ export default function RecommendPage() {
               className="w-full flex items-center justify-center gap-1.5 bg-green-50 text-green-700 py-2.5 rounded-xl text-sm font-medium hover:bg-green-100 transition-colors"
             >
               <Save size={16} />
-              就吃这个！记录到今天
+              就吃这个！选择日期后记录
             </button>
           </div>
         </div>
@@ -370,7 +370,7 @@ export default function RecommendPage() {
           onClose={() => setShowMealDialog(false)}
           onSaved={() => {
             setShowMealDialog(false);
-            alert("已记录到今日用餐！");
+            alert("已记录用餐！");
           }}
         />
       )}

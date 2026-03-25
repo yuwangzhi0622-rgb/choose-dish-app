@@ -10,7 +10,11 @@ import {
 } from "@/lib/categories";
 import {
   buildDishSearchText,
+  DishIngredientItem,
+  ingredientDetailsToIngredients,
   normalizeDishField,
+  parseIngredientDetails,
+  serializeIngredientDetails,
   splitDishField,
 } from "@/lib/dish-fields";
 import {
@@ -31,7 +35,9 @@ interface Dish {
   difficulty: string;
   prepTime: number | null;
   ingredients: string | null;
+  ingredientDetails: string | null;
   tags: string | null;
+  chefNote: string | null;
   description: string | null;
   createdAt: string;
 }
@@ -49,7 +55,9 @@ export default function DishesPage() {
   const [difficulty, setDifficulty] = useState("medium");
   const [prepTime, setPrepTime] = useState<number | null>(null);
   const [ingredients, setIngredients] = useState("");
+  const [ingredientItems, setIngredientItems] = useState<DishIngredientItem[]>([]);
   const [tags, setTags] = useState("");
+  const [chefNote, setChefNote] = useState("");
   const [description, setDescription] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -90,6 +98,11 @@ export default function DishesPage() {
       setSubmitting(true);
       setError("");
 
+      const serializedIngredientDetails = serializeIngredientDetails(ingredientItems);
+      const normalizedIngredients = serializedIngredientDetails
+        ? ingredientDetailsToIngredients(ingredientItems)
+        : normalizeDishField(ingredients);
+
       const payload = {
         name: name.trim(),
         category,
@@ -98,8 +111,10 @@ export default function DishesPage() {
         sweetnessLevel,
         difficulty,
         prepTime,
-        ingredients: normalizeDishField(ingredients),
+        ingredients: normalizedIngredients,
+        ingredientDetails: serializedIngredientDetails,
         tags: normalizeDishField(tags),
+        chefNote: chefNote.trim() || null,
         description: description.trim() || null,
       };
 
@@ -154,7 +169,9 @@ export default function DishesPage() {
     setDifficulty(dish.difficulty ?? "medium");
     setPrepTime(dish.prepTime);
     setIngredients(dish.ingredients ?? "");
+    setIngredientItems(parseIngredientDetails(dish.ingredientDetails, dish.ingredients));
     setTags(dish.tags ?? "");
+    setChefNote(dish.chefNote ?? "");
     setDescription(dish.description ?? "");
     setShowForm(true);
   };
@@ -190,8 +207,33 @@ export default function DishesPage() {
     setDifficulty("medium");
     setPrepTime(null);
     setIngredients("");
+    setIngredientItems([]);
     setTags("");
+    setChefNote("");
     setDescription("");
+  };
+
+  const addIngredientItem = () => {
+    setIngredientItems((prev) => [
+      ...prev,
+      { name: "", amount: "", unit: "", price: "", note: "" },
+    ]);
+  };
+
+  const updateIngredientItem = (
+    index: number,
+    field: keyof DishIngredientItem,
+    value: string
+  ) => {
+    setIngredientItems((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const removeIngredientItem = (index: number) => {
+    setIngredientItems((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
   };
 
   const cancelForm = () => {
@@ -453,12 +495,12 @@ export default function DishesPage() {
 
             <div className="grid grid-cols-1 gap-3">
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">主要食材</label>
+                <label className="text-xs text-gray-500 mb-1 block">主要食材概要</label>
                 <input
                   type="text"
                   value={ingredients}
                   onChange={(e) => setIngredients(e.target.value)}
-                  placeholder="如：土豆、牛肉、青椒"
+                  placeholder="如：土豆、牛肉、青椒（若下方已拆分，可留空）"
                   className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
                 />
               </div>
@@ -473,6 +515,89 @@ export default function DishesPage() {
                 />
               </div>
             </div>
+
+            <div className="rounded-2xl border border-gray-200 p-3 space-y-3 bg-gray-50/60">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium text-gray-900">拆分食材清单</div>
+                  <div className="text-xs text-gray-500">可填写构成、用量、单位、价格和采购备注</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={addIngredientItem}
+                  className="shrink-0 px-3 py-1.5 rounded-xl bg-orange-500 text-white text-xs font-medium hover:bg-orange-600 transition-colors"
+                >
+                  新增食材
+                </button>
+              </div>
+
+              {ingredientItems.length === 0 ? (
+                <div className="text-xs text-gray-400 rounded-xl border border-dashed border-gray-300 bg-white px-3 py-4 text-center">
+                  还没有拆分食材，点击右上角新增一项
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {ingredientItems.map((item, index) => (
+                    <div key={`${index}-${item.name}`} className="rounded-xl bg-white border border-gray-200 p-3 space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) => updateIngredientItem(index, "name", e.target.value)}
+                          placeholder="食材名，如五花肉"
+                          className="px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                        />
+                        <input
+                          type="text"
+                          value={item.amount ?? ""}
+                          onChange={(e) => updateIngredientItem(index, "amount", e.target.value)}
+                          placeholder="用量，如 300"
+                          className="px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                        />
+                        <input
+                          type="text"
+                          value={item.unit ?? ""}
+                          onChange={(e) => updateIngredientItem(index, "unit", e.target.value)}
+                          placeholder="单位，如 g / 份"
+                          className="px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                        />
+                        <input
+                          type="text"
+                          value={item.price ?? ""}
+                          onChange={(e) => updateIngredientItem(index, "price", e.target.value)}
+                          placeholder="价格，如 12"
+                          className="px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={item.note ?? ""}
+                          onChange={(e) => updateIngredientItem(index, "note", e.target.value)}
+                          placeholder="备注，如切丝、提前腌制、超市购买"
+                          className="flex-1 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeIngredientItem(index)}
+                          className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 transition-colors"
+                        >
+                          删除
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <textarea
+              value={chefNote}
+              onChange={(e) => setChefNote(e.target.value)}
+              placeholder="厨师备注（可选，如菜的构成、采购建议、成本/价格说明）"
+              rows={2}
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm resize-none"
+            />
 
             {/* Description */}
             <textarea
@@ -545,7 +670,25 @@ export default function DishesPage() {
                     </span>
                   )}
                 </div>
-                {splitDishField(dish.ingredients).length > 0 && (
+                {parseIngredientDetails(dish.ingredientDetails, dish.ingredients).length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {parseIngredientDetails(dish.ingredientDetails, dish.ingredients)
+                      .slice(0, 3)
+                      .map((item) => (
+                        <span
+                          key={`${dish.id}-detail-${item.name}-${item.amount}-${item.unit}`}
+                          className="px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 text-[11px]"
+                        >
+                          {item.name}
+                          {item.amount ? ` ${item.amount}` : ""}
+                          {item.unit || ""}
+                          {item.price ? ` · ￥${item.price}` : ""}
+                        </span>
+                      ))}
+                  </div>
+                )}
+                {splitDishField(dish.ingredients).length > 0 &&
+                  parseIngredientDetails(dish.ingredientDetails, dish.ingredients).length === 0 && (
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {splitDishField(dish.ingredients).slice(0, 4).map((item) => (
                       <span
@@ -567,6 +710,11 @@ export default function DishesPage() {
                         #{item}
                       </span>
                     ))}
+                  </div>
+                )}
+                {dish.chefNote && (
+                  <div className="text-xs text-amber-600 mt-1 truncate">
+                    厨师备注：{dish.chefNote}
                   </div>
                 )}
                 {dish.description && (

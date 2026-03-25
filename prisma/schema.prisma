@@ -17,7 +17,9 @@ model Dish {
   difficulty     String   @default("medium")
   prepTime       Int?
   ingredients    String?  @db.Text
+  ingredientDetails String? @db.LongText
   tags           String?  @db.Text
+  chefNote       String?  @db.Text
   description    String?  @db.Text
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -51,6 +53,9 @@ model MealRecord {
   mealTime    String?
   chef        String?
   personCount Int        @default(2)
+  orderStatus String     @default("pending")
+  feedbackRating Int?
+  feedbackComment String? @db.Text
   note        String?    @db.Text
   comboId     String?
   createdAt   DateTime   @default(now())

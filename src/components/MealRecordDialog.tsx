@@ -4,6 +4,38 @@ import { useState } from "react";
 import { X, Check, Users, ChefHat } from "lucide-react";
 import { MEAL_TYPES } from "@/lib/image-utils";
 
+function pad2(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function getDefaultMealDate() {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+}
+
+function getDefaultMealTime() {
+  const now = new Date();
+  return `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+}
+
+function getDefaultMealType() {
+  const hour = new Date().getHours();
+
+  if (hour < 10) {
+    return "breakfast";
+  }
+
+  if (hour < 15) {
+    return "lunch";
+  }
+
+  if (hour < 21) {
+    return "dinner";
+  }
+
+  return "snack";
+}
+
 interface MealRecordDialogProps {
   dishIds: string[];
   comboId?: string;
@@ -17,24 +49,24 @@ export default function MealRecordDialog({
   onClose,
   onSaved,
 }: MealRecordDialogProps) {
-  const [mealType, setMealType] = useState("lunch");
-  const [mealTime, setMealTime] = useState("");
+  const [mealDate, setMealDate] = useState(getDefaultMealDate);
+  const [mealType, setMealType] = useState(getDefaultMealType);
+  const [mealTime, setMealTime] = useState(getDefaultMealTime);
   const [chef, setChef] = useState("");
   const [personCount, setPersonCount] = useState(2);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    if (!dishIds.length) return;
+    if (!dishIds.length || !mealDate) return;
 
     setSaving(true);
     try {
-      const today = new Date().toISOString().split("T")[0];
       const res = await fetch("/api/meals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          date: today,
+          date: mealDate,
           dishIds,
           comboId,
           mealType,
@@ -90,7 +122,16 @@ export default function MealRecordDialog({
         </div>
 
         {/* Time & Chef */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm text-gray-600 mb-1.5 block">用餐日期</label>
+            <input
+              type="date"
+              value={mealDate}
+              onChange={(e) => setMealDate(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+            />
+          </div>
           <div>
             <label className="text-sm text-gray-600 mb-1.5 block">用餐时间</label>
             <input
@@ -100,18 +141,18 @@ export default function MealRecordDialog({
               className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
             />
           </div>
-          <div>
-            <label className="text-sm text-gray-600 mb-1.5 flex items-center gap-1">
-              <ChefHat size={14} /> 厨师
-            </label>
-            <input
-              type="text"
-              value={chef}
-              onChange={(e) => setChef(e.target.value)}
-              placeholder="谁做的？"
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
-            />
-          </div>
+        </div>
+        <div>
+          <label className="text-sm text-gray-600 mb-1.5 flex items-center gap-1">
+            <ChefHat size={14} /> 厨师
+          </label>
+          <input
+            type="text"
+            value={chef}
+            onChange={(e) => setChef(e.target.value)}
+            placeholder="谁做的？"
+            className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+          />
         </div>
 
         {/* Person count */}
@@ -156,7 +197,7 @@ export default function MealRecordDialog({
         {/* Submit */}
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || !mealDate}
           className="w-full flex items-center justify-center gap-1.5 bg-orange-500 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-orange-600 disabled:opacity-50 transition-colors"
         >
           <Check size={18} />

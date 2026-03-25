@@ -53,6 +53,9 @@ export async function GET(request: Request) {
           gte: startDateStr,
           lte: endDateStr,
         },
+        orderStatus: {
+          not: "rejected",
+        },
       },
       include: {
         mealDishes: {

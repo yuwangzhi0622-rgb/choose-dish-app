@@ -30,7 +30,9 @@ export async function POST(request: NextRequest) {
       difficulty,
       prepTime,
       ingredients,
+      ingredientDetails,
       tags,
+      chefNote,
       description,
     } = body;
 
@@ -51,7 +53,9 @@ export async function POST(request: NextRequest) {
         difficulty: difficulty || "medium",
         prepTime: prepTime ?? null,
         ingredients: ingredients || null,
+        ingredientDetails: ingredientDetails || null,
         tags: tags || null,
+        chefNote: chefNote || null,
         description: description || null,
       },
     });

@@ -33,7 +33,10 @@ export async function POST(request: NextRequest) {
     const recentDateStr = recentDate.toISOString().split("T")[0];
 
     const recentMeals = await prisma.mealRecord.findMany({
-      where: { date: { gte: recentDateStr } },
+      where: {
+        date: { gte: recentDateStr },
+        orderStatus: { not: "rejected" },
+      },
       include: { mealDishes: { select: { dishId: true } } },
     });
 
