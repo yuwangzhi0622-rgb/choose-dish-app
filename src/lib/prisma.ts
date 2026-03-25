@@ -1,31 +1,30 @@
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
 
-const DATABASE_URL = process.env.DATABASE_URL || "file:./dev.db";
-const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not set");
+}
+
+const parsedUrl = new URL(databaseUrl);
+
+const adapter = new PrismaMariaDb({
+  host: parsedUrl.hostname,
+  port: parsedUrl.port ? Number(parsedUrl.port) : 3306,
+  user: decodeURIComponent(parsedUrl.username),
+  password: decodeURIComponent(parsedUrl.password),
+  database: parsedUrl.pathname.replace(/^\//, ""),
+});
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
-  prismaDatabaseUrl: string | undefined;
 };
 
-function createPrismaClient() {
-  const adapter = new PrismaLibSql({
-    url: DATABASE_URL,
-    authToken: TURSO_AUTH_TOKEN || undefined,
-  });
-
-  return new PrismaClient({ adapter });
-}
-
-const prisma =
-  globalForPrisma.prisma && globalForPrisma.prismaDatabaseUrl === DATABASE_URL
-    ? globalForPrisma.prisma
-    : createPrismaClient();
+const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
 
 export { prisma };
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
-  globalForPrisma.prismaDatabaseUrl = DATABASE_URL;
 }
