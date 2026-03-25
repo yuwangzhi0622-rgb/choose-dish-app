@@ -254,20 +254,21 @@ export default function DishesPage() {
 
       {/* Add/Edit form */}
       {showForm && (
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100">
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-gray-900">
-                {editingDish ? "编辑菜品" : "添加新菜品"}
-              </h3>
-              <button
-                type="button"
-                onClick={cancelForm}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={20} />
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-5 space-y-4 animate-in slide-in-from-bottom max-h-[90vh] overflow-y-auto">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-gray-900 text-lg">
+                  {editingDish ? "编辑菜品" : "添加新菜品"}
+                </h3>
+                <button
+                  type="button"
+                  onClick={cancelForm}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
             {/* Image upload */}
             <div className="flex items-center gap-3">

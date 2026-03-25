@@ -243,8 +243,8 @@ export default function Home() {
 
       {/* Floating cart bar */}
       {totalItems > 0 && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 px-4">
-          <div className="max-w-lg mx-auto bg-orange-500 rounded-2xl shadow-lg flex items-center justify-between px-4 py-3">
+        <div className="fixed bottom-[4.5rem] md:bottom-6 left-0 right-0 z-40 px-4 md:pl-68">
+          <div className="max-w-4xl mx-auto bg-orange-500 rounded-2xl shadow-lg flex items-center justify-between px-4 py-3">
             <button
               onClick={() => setShowCart(!showCart)}
               className="flex items-center gap-2 text-white"

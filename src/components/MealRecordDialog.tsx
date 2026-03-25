@@ -59,8 +59,8 @@ export default function MealRecordDialog({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-5 space-y-4 animate-in slide-in-from-bottom">
+    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-[60] p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-5 space-y-4 animate-in slide-in-from-bottom max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-gray-900 text-lg">记录用餐</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
