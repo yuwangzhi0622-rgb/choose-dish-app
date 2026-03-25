@@ -5,6 +5,8 @@ export const CATEGORIES = [
   { value: "staple", label: "主食", emoji: "🍚" },
   { value: "cold", label: "凉菜", emoji: "🥗" },
   { value: "snack", label: "小吃", emoji: "🥟" },
+  { value: "drink", label: "饮料酒水", emoji: "🍺" },
+  { value: "poker", label: "扑克牌", emoji: "🃏" },
 ] as const;
 
 export type CategoryValue = (typeof CATEGORIES)[number]["value"];

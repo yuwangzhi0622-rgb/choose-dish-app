@@ -7,13 +7,13 @@ import {
   Shuffle,
   Heart,
   CalendarDays,
-  ChefHat,
+  Home,
 } from "lucide-react";
 
 const navItems = [
-  { href: "/", label: "首页", icon: ChefHat },
-  { href: "/dishes", label: "菜品", icon: UtensilsCrossed },
-  { href: "/recommend", label: "推荐", icon: Shuffle },
+  { href: "/", label: "点菜", icon: Home },
+  { href: "/dishes", label: "管理", icon: UtensilsCrossed },
+  { href: "/recommend", label: "随机", icon: Shuffle },
   { href: "/favorites", label: "收藏", icon: Heart },
   { href: "/history", label: "记录", icon: CalendarDays },
 ];

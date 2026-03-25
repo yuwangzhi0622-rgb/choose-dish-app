@@ -9,8 +9,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "今天吃什么 - 点菜搭配助手",
-  description: "帮你决定每天吃什么的智能点菜搭配小程序",
+  title: "幸福里私房菜",
+  description: "幸福里私房菜 - 点菜搭配助手",
 };
 
 export const viewport: Viewport = {
