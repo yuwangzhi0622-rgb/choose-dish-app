@@ -27,11 +27,15 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { date, dishIds, comboId, note } = body as {
+    const { date, dishIds, comboId, note, mealType, mealTime, chef, personCount } = body as {
       date: string;
       dishIds: string[];
       comboId?: string;
       note?: string;
+      mealType?: string;
+      mealTime?: string;
+      chef?: string;
+      personCount?: number;
     };
 
     if (!date || !dishIds?.length) {
@@ -44,8 +48,12 @@ export async function POST(request: NextRequest) {
     const meal = await prisma.mealRecord.create({
       data: {
         date,
+        mealType: mealType || "lunch",
+        mealTime: mealTime || null,
+        chef: chef || null,
+        personCount: personCount ?? 2,
         comboId,
-        note,
+        note: note || null,
         mealDishes: {
           create: dishIds.map((dishId) => ({ dishId })),
         },

@@ -8,7 +8,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, category } = body;
+    const { name, category, imageUrl, spiceLevel, sweetnessLevel, difficulty, prepTime, description } = body;
 
     if (!name || !category) {
       return NextResponse.json(
@@ -19,7 +19,16 @@ export async function PUT(
 
     const dish = await prisma.dish.update({
       where: { id },
-      data: { name, category },
+      data: {
+        name,
+        category,
+        imageUrl: imageUrl === undefined ? undefined : (imageUrl || null),
+        spiceLevel: spiceLevel ?? undefined,
+        sweetnessLevel: sweetnessLevel ?? undefined,
+        difficulty: difficulty || undefined,
+        prepTime: prepTime === undefined ? undefined : (prepTime ?? null),
+        description: description === undefined ? undefined : (description || null),
+      },
     });
 
     return NextResponse.json(dish);

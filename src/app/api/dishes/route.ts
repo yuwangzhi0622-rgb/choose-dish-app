@@ -21,7 +21,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, category } = body;
+    const { name, category, imageUrl, spiceLevel, sweetnessLevel, difficulty, prepTime, description } = body;
 
     if (!name || !category) {
       return NextResponse.json(
@@ -31,7 +31,16 @@ export async function POST(request: NextRequest) {
     }
 
     const dish = await prisma.dish.create({
-      data: { name, category },
+      data: {
+        name,
+        category,
+        imageUrl: imageUrl || null,
+        spiceLevel: spiceLevel ?? 0,
+        sweetnessLevel: sweetnessLevel ?? 0,
+        difficulty: difficulty || "medium",
+        prepTime: prepTime ?? null,
+        description: description || null,
+      },
     });
 
     return NextResponse.json(dish, { status: 201 });

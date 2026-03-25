@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react";
 import { Heart, Trash2, Save, HeartOff } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import MealRecordDialog from "@/components/MealRecordDialog";
 import { getCategoryEmoji, getCategoryLabel } from "@/lib/categories";
 
 interface Dish {
   id: string;
   name: string;
   category: string;
+  imageUrl?: string | null;
+  spiceLevel?: number;
 }
 
 interface ComboDish {
@@ -27,6 +30,7 @@ interface Combo {
 export default function FavoritesPage() {
   const [combos, setCombos] = useState<Combo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mealCombo, setMealCombo] = useState<Combo | null>(null);
 
   const fetchCombos = async () => {
     const res = await fetch("/api/combos?favorites=true");
@@ -109,26 +113,8 @@ export default function FavoritesPage() {
     }
   };
 
-  const handleUseCombo = async (combo: Combo) => {
-    const today = new Date().toISOString().split("T")[0];
-    const dishIds = combo.comboDishes.map((cd) => cd.dish.id);
-
-    try {
-      const res = await fetch("/api/meals", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: today, dishIds, comboId: combo.id }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "记录用餐失败");
-      }
-
-      alert("已记录到今日用餐！");
-    } catch (error) {
-      alert(error instanceof Error ? error.message : "记录用餐失败");
-    }
+  const handleUseCombo = (combo: Combo) => {
+    setMealCombo(combo);
   };
 
   // Group dishes by category for display
@@ -204,9 +190,13 @@ export default function FavoritesPage() {
                         {dishes.map((dish) => (
                           <span
                             key={dish.id}
-                            className="bg-orange-50 text-orange-700 px-2.5 py-1 rounded-lg text-xs font-medium"
+                            className="inline-flex items-center gap-1 bg-orange-50 text-orange-700 px-2.5 py-1 rounded-lg text-xs font-medium"
                           >
+                            {dish.imageUrl ? (
+                              <img src={dish.imageUrl} alt={dish.name} className="w-4 h-4 rounded object-cover" />
+                            ) : null}
                             {dish.name}
+                            {(dish.spiceLevel ?? 0) > 0 && <span className="text-red-500">{"\ud83c\udf36\ufe0f".repeat(dish.spiceLevel!)}</span>}
                           </span>
                         ))}
                       </div>
@@ -225,6 +215,19 @@ export default function FavoritesPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Meal record dialog */}
+      {mealCombo && (
+        <MealRecordDialog
+          dishIds={mealCombo.comboDishes.map((cd) => cd.dish.id)}
+          comboId={mealCombo.id}
+          onClose={() => setMealCombo(null)}
+          onSaved={() => {
+            setMealCombo(null);
+            alert("已记录到今日用餐！");
+          }}
+        />
       )}
     </div>
   );

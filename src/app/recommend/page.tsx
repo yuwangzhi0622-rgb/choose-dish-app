@@ -1,18 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Shuffle, Heart, Save, Minus, Plus } from "lucide-react";
+import { Shuffle, Heart, Save, Minus, Plus, Clock } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import MealRecordDialog from "@/components/MealRecordDialog";
 import {
   CATEGORIES,
   getCategoryLabel,
   getCategoryEmoji,
 } from "@/lib/categories";
+import { getDifficultyLabel } from "@/lib/image-utils";
 
 interface Dish {
   id: string;
   name: string;
   category: string;
+  imageUrl?: string | null;
+  spiceLevel?: number;
+  sweetnessLevel?: number;
+  difficulty?: string;
+  prepTime?: number | null;
+  description?: string | null;
 }
 
 interface RecommendResult {
@@ -38,6 +46,7 @@ export default function RecommendPage() {
   const [comboName, setComboName] = useState("");
   const [saved, setSaved] = useState(false);
   const [dishCounts, setDishCounts] = useState<Record<string, number>>({});
+  const [showMealDialog, setShowMealDialog] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -142,27 +151,10 @@ export default function RecommendPage() {
     }
   };
 
-  const handleSaveAsMeal = async () => {
+  const handleSaveAsMeal = () => {
     const dishIds = result.flatMap((r) => r.dishes.map((d) => d.id));
     if (!dishIds.length) return;
-
-    const today = new Date().toISOString().split("T")[0];
-    try {
-      const res = await fetch("/api/meals", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: today, dishIds }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "记录用餐失败，请重试");
-      }
-
-      alert("已记录到今日用餐！");
-    } catch (error) {
-      alert(error instanceof Error ? error.message : "记录用餐失败，请重试");
-    }
+    setShowMealDialog(true);
   };
 
   return (
@@ -248,14 +240,24 @@ export default function RecommendPage() {
                   {getCategoryEmoji(group.category)}{" "}
                   {getCategoryLabel(group.category)}
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="space-y-1.5">
                   {group.dishes.map((dish) => (
-                    <span
+                    <div
                       key={dish.id}
-                      className="bg-orange-50 text-orange-700 px-3 py-1.5 rounded-lg text-sm font-medium"
+                      className="flex items-center gap-2 bg-orange-50 rounded-lg px-3 py-2"
                     >
-                      {dish.name}
-                    </span>
+                      {dish.imageUrl ? (
+                        <img src={dish.imageUrl} alt={dish.name} className="w-8 h-8 rounded object-cover shrink-0" />
+                      ) : (
+                        <span className="text-base">{getCategoryEmoji(dish.category)}</span>
+                      )}
+                      <span className="text-sm font-medium text-orange-700">{dish.name}</span>
+                      <div className="flex items-center gap-1.5 ml-auto text-xs text-gray-400">
+                        {(dish.spiceLevel ?? 0) > 0 && <span className="text-red-500">{"🌶️".repeat(dish.spiceLevel!)}</span>}
+                        {dish.prepTime && <span className="flex items-center gap-0.5"><Clock size={10} />{dish.prepTime}min</span>}
+                        {dish.difficulty && <span>{getDifficultyLabel(dish.difficulty)}</span>}
+                      </div>
+                    </div>
                   ))}
                   {group.dishes.length === 0 && (
                     <span className="text-sm text-gray-400">
@@ -295,6 +297,18 @@ export default function RecommendPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Meal record dialog */}
+      {showMealDialog && (
+        <MealRecordDialog
+          dishIds={result.flatMap((r) => r.dishes.map((d) => d.id))}
+          onClose={() => setShowMealDialog(false)}
+          onSaved={() => {
+            setShowMealDialog(false);
+            alert("已记录到今日用餐！");
+          }}
+        />
       )}
     </div>
   );

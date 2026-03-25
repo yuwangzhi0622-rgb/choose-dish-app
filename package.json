@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 3001",
     "build": "next build",
-    "db:init": "node scripts/init-db.mjs",
+    "db:init": "node --env-file=.env scripts/init-db.mjs",
     "postinstall": "prisma generate",
     "start": "next start --hostname 127.0.0.1 --port 3001",
     "lint": "eslint"

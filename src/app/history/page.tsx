@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, CalendarDays } from "lucide-react";
+import { Trash2, CalendarDays, Users, ChefHat, Clock } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { getCategoryEmoji } from "@/lib/categories";
+import { getMealTypeEmoji, getMealTypeLabel } from "@/lib/image-utils";
 
 interface Dish {
   id: string;
@@ -19,6 +20,10 @@ interface MealDish {
 interface MealRecord {
   id: string;
   date: string;
+  mealType: string;
+  mealTime: string | null;
+  chef: string | null;
+  personCount: number;
   note: string | null;
   createdAt: string;
   mealDishes: MealDish[];
@@ -142,7 +147,14 @@ export default function HistoryPage() {
                   <span className="text-sm font-semibold text-orange-600">
                     {formatDate(meal.date)}
                   </span>
-                  <span className="text-xs text-gray-400">{meal.date}</span>
+                  <span className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-xs font-medium">
+                    {getMealTypeEmoji(meal.mealType)} {getMealTypeLabel(meal.mealType)}
+                  </span>
+                  {meal.mealTime && (
+                    <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                      <Clock size={10} /> {meal.mealTime}
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => handleDelete(meal.id)}
@@ -151,6 +163,22 @@ export default function HistoryPage() {
                   <Trash2 size={16} />
                 </button>
               </div>
+
+              {/* Meta info: chef & person count */}
+              <div className="flex items-center gap-3 mb-2 text-xs text-gray-500">
+                <span className="text-gray-400">{meal.date}</span>
+                {meal.chef && (
+                  <span className="flex items-center gap-0.5">
+                    <ChefHat size={12} /> {meal.chef}
+                  </span>
+                )}
+                {meal.personCount > 0 && (
+                  <span className="flex items-center gap-0.5">
+                    <Users size={12} /> {meal.personCount}人
+                  </span>
+                )}
+              </div>
+
               <div className="flex flex-wrap gap-2">
                 {meal.mealDishes.map((md) => (
                   <span

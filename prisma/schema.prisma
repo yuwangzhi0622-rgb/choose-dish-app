@@ -8,13 +8,19 @@ datasource db {
 }
 
 model Dish {
-  id        String   @id @default(cuid())
-  name      String
-  category  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  comboDishes ComboDish[]
-  mealDishes  MealDish[]
+  id             String   @id @default(cuid())
+  name           String
+  category       String
+  imageUrl       String?
+  spiceLevel     Int      @default(0)
+  sweetnessLevel Int      @default(0)
+  difficulty     String   @default("medium")
+  prepTime       Int?
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  comboDishes    ComboDish[]
+  mealDishes     MealDish[]
 }
 
 model Combo {
@@ -37,13 +43,17 @@ model ComboDish {
 }
 
 model MealRecord {
-  id        String     @id @default(cuid())
-  date      String
-  comboId   String?
-  note      String?
-  createdAt DateTime   @default(now())
-  combo     Combo?     @relation(fields: [comboId], references: [id], onDelete: SetNull)
-  mealDishes MealDish[]
+  id          String     @id @default(cuid())
+  date        String
+  mealType    String     @default("lunch")
+  mealTime    String?
+  chef        String?
+  personCount Int        @default(2)
+  note        String?
+  comboId     String?
+  createdAt   DateTime   @default(now())
+  combo       Combo?     @relation(fields: [comboId], references: [id], onDelete: SetNull)
+  mealDishes  MealDish[]
 }
 
 model MealDish {
