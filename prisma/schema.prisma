@@ -16,6 +16,8 @@ model Dish {
   sweetnessLevel Int      @default(0)
   difficulty     String   @default("medium")
   prepTime       Int?
+  ingredients    String?  @db.Text
+  tags           String?  @db.Text
   description    String?  @db.Text
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

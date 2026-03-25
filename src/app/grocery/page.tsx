@@ -14,6 +14,7 @@ interface GroceryItem {
 function GroceryContent() {
   const searchParams = useSearchParams();
   const [items, setItems] = useState<GroceryItem[]>([]);
+  const [summaryItems, setSummaryItems] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ function GroceryContent() {
         if (!res.ok) throw new Error("获取失败");
         const data = await res.json();
         setItems(data.groceryList || []);
+        setSummaryItems(data.summaryItems || []);
       } catch (error) {
         console.error(error);
       } finally {
@@ -57,7 +59,7 @@ function GroceryContent() {
         </Link>
         <PageHeader
           title="食材清单"
-          description="基于你选择的菜品备注生成"
+          description="优先基于你填写的食材字段生成"
         />
       </div>
 
@@ -72,9 +74,9 @@ function GroceryContent() {
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">未发现所需食材</h3>
           <p className="text-gray-500 text-sm max-w-sm mx-auto">
-            你选择的菜品没有填写备注，或者你还没有在首页选菜。
+            你选择的菜品没有填写食材/备注，或者你还没有在首页选菜。
             <br />
-            建议在「管理」页面为菜品添加做法和食材提示。
+            建议在「管理」页面为菜品补充主要食材和标签。
           </p>
           <Link 
             href="/"
@@ -88,9 +90,25 @@ function GroceryContent() {
           <div className="bg-orange-50 text-orange-800 p-4 rounded-xl text-sm flex gap-3 items-start">
             <ShoppingBag className="shrink-0 text-orange-500" size={20} />
             <p>
-              这里提取了你选中菜品的备注信息。去菜市场买菜时，可以直接对照以下清单购买。
+              这里优先提取了你选中菜品的食材字段，并附带备注说明。去买菜时可以直接对照以下清单。
             </p>
           </div>
+
+          {summaryItems.length > 0 && (
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div className="font-semibold text-gray-900 mb-3">汇总购买清单</div>
+              <div className="flex flex-wrap gap-2">
+                {summaryItems.map((item) => (
+                  <span
+                    key={item}
+                    className="px-3 py-1.5 rounded-full bg-orange-50 text-orange-700 text-sm"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           
           <div className="space-y-3">
             {items.map((item, i) => (

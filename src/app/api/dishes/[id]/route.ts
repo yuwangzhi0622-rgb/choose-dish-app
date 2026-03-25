@@ -8,7 +8,18 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, category, imageUrl, spiceLevel, sweetnessLevel, difficulty, prepTime, description } = body;
+    const {
+      name,
+      category,
+      imageUrl,
+      spiceLevel,
+      sweetnessLevel,
+      difficulty,
+      prepTime,
+      ingredients,
+      tags,
+      description,
+    } = body;
 
     if (!name || !category) {
       return NextResponse.json(
@@ -27,6 +38,8 @@ export async function PUT(
         sweetnessLevel: sweetnessLevel ?? undefined,
         difficulty: difficulty || undefined,
         prepTime: prepTime === undefined ? undefined : (prepTime ?? null),
+        ingredients: ingredients === undefined ? undefined : (ingredients || null),
+        tags: tags === undefined ? undefined : (tags || null),
         description: description === undefined ? undefined : (description || null),
       },
     });

@@ -21,7 +21,18 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, category, imageUrl, spiceLevel, sweetnessLevel, difficulty, prepTime, description } = body;
+    const {
+      name,
+      category,
+      imageUrl,
+      spiceLevel,
+      sweetnessLevel,
+      difficulty,
+      prepTime,
+      ingredients,
+      tags,
+      description,
+    } = body;
 
     if (!name || !category) {
       return NextResponse.json(
@@ -39,6 +50,8 @@ export async function POST(request: NextRequest) {
         sweetnessLevel: sweetnessLevel ?? 0,
         difficulty: difficulty || "medium",
         prepTime: prepTime ?? null,
+        ingredients: ingredients || null,
+        tags: tags || null,
         description: description || null,
       },
     });

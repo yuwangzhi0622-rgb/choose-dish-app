@@ -1,13 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Pencil, Trash2, X, Check, Camera, Clock } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Camera, Clock, Search } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import {
   CATEGORIES,
   getCategoryLabel,
   getCategoryEmoji,
 } from "@/lib/categories";
+import {
+  buildDishSearchText,
+  normalizeDishField,
+  splitDishField,
+} from "@/lib/dish-fields";
 import {
   compressImage,
   SPICE_LEVELS,
@@ -25,6 +30,8 @@ interface Dish {
   sweetnessLevel: number;
   difficulty: string;
   prepTime: number | null;
+  ingredients: string | null;
+  tags: string | null;
   description: string | null;
   createdAt: string;
 }
@@ -41,8 +48,12 @@ export default function DishesPage() {
   const [sweetnessLevel, setSweetnessLevel] = useState(0);
   const [difficulty, setDifficulty] = useState("medium");
   const [prepTime, setPrepTime] = useState<number | null>(null);
+  const [ingredients, setIngredients] = useState("");
+  const [tags, setTags] = useState("");
   const [description, setDescription] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "name" | "prepTime">("newest");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,6 +98,8 @@ export default function DishesPage() {
         sweetnessLevel,
         difficulty,
         prepTime,
+        ingredients: normalizeDishField(ingredients),
+        tags: normalizeDishField(tags),
         description: description.trim() || null,
       };
 
@@ -140,6 +153,8 @@ export default function DishesPage() {
     setSweetnessLevel(dish.sweetnessLevel ?? 0);
     setDifficulty(dish.difficulty ?? "medium");
     setPrepTime(dish.prepTime);
+    setIngredients(dish.ingredients ?? "");
+    setTags(dish.tags ?? "");
     setDescription(dish.description ?? "");
     setShowForm(true);
   };
@@ -174,6 +189,8 @@ export default function DishesPage() {
     setSweetnessLevel(0);
     setDifficulty("medium");
     setPrepTime(null);
+    setIngredients("");
+    setTags("");
     setDescription("");
   };
 
@@ -182,10 +199,26 @@ export default function DishesPage() {
     resetForm();
   };
 
-  const filteredDishes =
-    filterCategory === "all"
-      ? dishes
-      : dishes.filter((d) => d.category === filterCategory);
+  const filteredDishes = dishes
+    .filter((d) => filterCategory === "all" || d.category === filterCategory)
+    .filter((d) => {
+      if (!searchTerm.trim()) {
+        return true;
+      }
+
+      return buildDishSearchText(d).includes(searchTerm.trim().toLocaleLowerCase());
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") {
+        return a.name.localeCompare(b.name, "zh-CN");
+      }
+
+      if (sortBy === "prepTime") {
+        return (a.prepTime ?? Number.MAX_SAFE_INTEGER) - (b.prepTime ?? Number.MAX_SAFE_INTEGER);
+      }
+
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   const categoryCounts = CATEGORIES.map((cat) => ({
     ...cat,
@@ -224,6 +257,28 @@ export default function DishesPage() {
           {error}
         </div>
       ) : null}
+
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_180px] gap-3 mb-4">
+        <div className="flex items-center gap-2 bg-white rounded-2xl border border-gray-100 px-4 py-3">
+          <Search size={18} className="text-gray-400 shrink-0" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="搜索菜名、食材、标签、备注"
+            className="w-full bg-transparent text-sm text-gray-700 focus:outline-none"
+          />
+        </div>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as "newest" | "name" | "prepTime")}
+          className="bg-white rounded-2xl border border-gray-100 px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-400"
+        >
+          <option value="newest">按最新添加</option>
+          <option value="name">按名称排序</option>
+          <option value="prepTime">按烹饪时间</option>
+        </select>
+      </div>
 
       {/* Category filter */}
       <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
@@ -396,11 +451,34 @@ export default function DishesPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">主要食材</label>
+                <input
+                  type="text"
+                  value={ingredients}
+                  onChange={(e) => setIngredients(e.target.value)}
+                  placeholder="如：土豆、牛肉、青椒"
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">标签</label>
+                <input
+                  type="text"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="如：下饭、快手、清淡"
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                />
+              </div>
+            </div>
+
             {/* Description */}
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="备注说明（可选，如做法、食材、忌口提示等）"
+              placeholder="备注说明（可选，如做法、小贴士、购买提醒等）"
               rows={2}
               className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm resize-none"
             />
@@ -426,7 +504,7 @@ export default function DishesPage() {
       {filteredDishes.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
           <p className="text-lg mb-2">暂无菜品</p>
-          <p className="text-sm">点击右上角添加你喜欢的菜品吧</p>
+          <p className="text-sm">试试调整分类、搜索条件，或者点击右上角添加菜品</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -467,6 +545,30 @@ export default function DishesPage() {
                     </span>
                   )}
                 </div>
+                {splitDishField(dish.ingredients).length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {splitDishField(dish.ingredients).slice(0, 4).map((item) => (
+                      <span
+                        key={`${dish.id}-ingredient-${item}`}
+                        className="px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 text-[11px]"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {splitDishField(dish.tags).length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {splitDishField(dish.tags).slice(0, 4).map((item) => (
+                      <span
+                        key={`${dish.id}-tag-${item}`}
+                        className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[11px]"
+                      >
+                        #{item}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 {dish.description && (
                   <div className="text-xs text-gray-400 mt-0.5 truncate">
                     {dish.description}

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Shuffle, Heart, Save, Minus, Plus, Clock } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import MealRecordDialog from "@/components/MealRecordDialog";
+import { splitDishField, splitFilterInput } from "@/lib/dish-fields";
 import {
   CATEGORIES,
   getCategoryLabel,
@@ -20,6 +21,8 @@ interface Dish {
   sweetnessLevel?: number;
   difficulty?: string;
   prepTime?: number | null;
+  ingredients?: string | null;
+  tags?: string | null;
   description?: string | null;
 }
 
@@ -47,6 +50,9 @@ export default function RecommendPage() {
   const [saved, setSaved] = useState(false);
   const [dishCounts, setDishCounts] = useState<Record<string, number>>({});
   const [showMealDialog, setShowMealDialog] = useState(false);
+  const [avoidIngredients, setAvoidIngredients] = useState("");
+  const [avoidTags, setAvoidTags] = useState("");
+  const [excludeDays, setExcludeDays] = useState(3);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,7 +111,12 @@ export default function RecommendPage() {
       const res = await fetch("/api/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rules: activeRules }),
+        body: JSON.stringify({
+          rules: activeRules,
+          excludeDays,
+          avoidIngredients: splitFilterInput(avoidIngredients),
+          avoidTags: splitFilterInput(avoidTags),
+        }),
       });
       const data = await res.json();
 
@@ -217,6 +228,40 @@ export default function RecommendPage() {
             </div>
           ))}
         </div>
+
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="md:col-span-1">
+            <label className="text-xs text-gray-500 mb-1 block">最近几天不重复</label>
+            <input
+              type="number"
+              min="0"
+              max="30"
+              value={excludeDays}
+              onChange={(e) => setExcludeDays(Math.max(0, Number(e.target.value || 0)))}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="text-xs text-gray-500 mb-1 block">排除食材</label>
+            <input
+              type="text"
+              value={avoidIngredients}
+              onChange={(e) => setAvoidIngredients(e.target.value)}
+              placeholder="如：香菜、肥肉、芹菜"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+          <div className="md:col-span-3">
+            <label className="text-xs text-gray-500 mb-1 block">排除标签</label>
+            <input
+              type="text"
+              value={avoidTags}
+              onChange={(e) => setAvoidTags(e.target.value)}
+              placeholder="如：油炸、辛辣、重口"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Generate button */}
@@ -242,26 +287,45 @@ export default function RecommendPage() {
                 </div>
                 <div className="space-y-1.5">
                   {group.dishes.map((dish) => (
-                    <div
-                      key={dish.id}
-                      className="flex items-center gap-2 bg-orange-50 rounded-lg px-3 py-2"
-                    >
-                      {dish.imageUrl ? (
-                        <img src={dish.imageUrl} alt={dish.name} className="w-8 h-8 rounded object-cover shrink-0" />
-                      ) : (
-                        <span className="text-base">{getCategoryEmoji(dish.category)}</span>
-                      )}
-                      <span className="text-sm font-medium text-orange-700">{dish.name}</span>
-                      <div className="flex items-center gap-1.5 ml-auto text-xs text-gray-400">
-                        {(dish.spiceLevel ?? 0) > 0 && <span className="text-red-500">{"🌶️".repeat(dish.spiceLevel!)}</span>}
-                        {dish.prepTime && <span className="flex items-center gap-0.5"><Clock size={10} />{dish.prepTime}min</span>}
-                        {dish.difficulty && <span>{getDifficultyLabel(dish.difficulty)}</span>}
+                    <div key={dish.id}>
+                      <div className="flex items-center gap-2 bg-orange-50 rounded-lg px-3 py-2">
+                        {dish.imageUrl ? (
+                          <img src={dish.imageUrl} alt={dish.name} className="w-8 h-8 rounded object-cover shrink-0" />
+                        ) : (
+                          <span className="text-base">{getCategoryEmoji(dish.category)}</span>
+                        )}
+                        <span className="text-sm font-medium text-orange-700">{dish.name}</span>
+                        <div className="flex items-center gap-1.5 ml-auto text-xs text-gray-400">
+                          {(dish.spiceLevel ?? 0) > 0 && <span className="text-red-500">{"🌶️".repeat(dish.spiceLevel!)}</span>}
+                          {dish.prepTime && <span className="flex items-center gap-0.5"><Clock size={10} />{dish.prepTime}min</span>}
+                          {dish.difficulty && <span>{getDifficultyLabel(dish.difficulty)}</span>}
+                        </div>
                       </div>
+                      {(splitDishField(dish.ingredients).length > 0 || splitDishField(dish.tags).length > 0) && (
+                        <div className="pl-10 flex flex-wrap gap-1.5 mt-1">
+                          {splitDishField(dish.ingredients).slice(0, 4).map((item) => (
+                            <span
+                              key={`${dish.id}-ingredient-${item}`}
+                              className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[11px]"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                          {splitDishField(dish.tags).slice(0, 4).map((item) => (
+                            <span
+                              key={`${dish.id}-tag-${item}`}
+                              className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[11px]"
+                            >
+                              #{item}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                   {group.dishes.length === 0 && (
                     <span className="text-sm text-gray-400">
-                      该分类暂无菜品
+                      该分类暂无符合条件的菜品
                     </span>
                   )}
                 </div>

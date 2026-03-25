@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { splitDishField } from "@/lib/dish-fields";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -21,26 +22,40 @@ export async function POST(request: Request) {
       select: {
         id: true,
         name: true,
+        ingredients: true,
         description: true,
       },
     });
 
-    // Simple AI-like extraction logic based on the description
-    // In a real app, you might want to use a real LLM API here, but for now we extract based on a simple regex or assumption
-    // We will return the raw descriptions so the user can see them in one place, or simple keywords if possible.
-    
-    let groceryList: { dishName: string; note: string }[] = [];
-    
-    dishes.forEach((dish) => {
-      if (dish.description) {
-        groceryList.push({
-          dishName: dish.name,
-          note: dish.description,
-        });
+    const summaryItems = Array.from(
+      new Set(dishes.flatMap((dish) => splitDishField(dish.ingredients)))
+    );
+
+    const groceryList = dishes.flatMap((dish) => {
+      const ingredientItems = splitDishField(dish.ingredients);
+      const noteParts = [] as string[];
+
+      if (ingredientItems.length > 0) {
+        noteParts.push(`食材：${ingredientItems.join("、")}`);
       }
+
+      if (dish.description) {
+        noteParts.push(`备注：${dish.description}`);
+      }
+
+      if (noteParts.length === 0) {
+        return [];
+      }
+
+      return [
+        {
+          dishName: dish.name,
+          note: noteParts.join("\n"),
+        },
+      ];
     });
 
-    return NextResponse.json({ groceryList });
+    return NextResponse.json({ groceryList, summaryItems });
   } catch (error) {
     console.error("Failed to generate grocery list:", error);
     return NextResponse.json(
