@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { ShoppingBag, ChevronLeft, AlertCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -11,7 +11,7 @@ interface GroceryItem {
   note: string;
 }
 
-export default function GroceryPage() {
+function GroceryContent() {
   const searchParams = useSearchParams();
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,5 +108,17 @@ export default function GroceryPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function GroceryPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-400">加载中...</div>
+      </div>
+    }>
+      <GroceryContent />
+    </Suspense>
   );
 }
