@@ -63,9 +63,11 @@ const statements = [
     "id" TEXT NOT NULL PRIMARY KEY,
     "mealRecordId" TEXT NOT NULL,
     "dishId" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
     CONSTRAINT "MealDish_mealRecordId_fkey" FOREIGN KEY ("mealRecordId") REFERENCES "MealRecord" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "MealDish_dishId_fkey" FOREIGN KEY ("dishId") REFERENCES "Dish" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   )`,
+  `ALTER TABLE "MealDish" ADD COLUMN "quantity" INTEGER NOT NULL DEFAULT 1`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "ComboDish_comboId_dishId_key" ON "ComboDish"("comboId", "dishId")`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "MealDish_mealRecordId_dishId_key" ON "MealDish"("mealRecordId", "dishId")`,
 ];

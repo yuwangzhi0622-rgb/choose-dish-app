@@ -60,6 +60,7 @@ model MealDish {
   id           String     @id @default(cuid())
   mealRecordId String
   dishId       String
+  quantity     Int        @default(1)
   mealRecord   MealRecord @relation(fields: [mealRecordId], references: [id], onDelete: Cascade)
   dish         Dish       @relation(fields: [dishId], references: [id], onDelete: Cascade)
 

@@ -14,6 +14,7 @@ interface Dish {
 
 interface MealDish {
   id: string;
+  quantity: number;
   dish: Dish;
 }
 
@@ -186,6 +187,7 @@ export default function HistoryPage() {
                     className="bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-sm"
                   >
                     {getCategoryEmoji(md.dish.category)} {md.dish.name}
+                    {md.quantity > 1 ? ` ×${md.quantity}` : ""}
                   </span>
                 ))}
               </div>

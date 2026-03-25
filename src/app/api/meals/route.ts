@@ -45,6 +45,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const dishQuantities = dishIds.reduce<Record<string, number>>((acc, dishId) => {
+      acc[dishId] = (acc[dishId] ?? 0) + 1;
+      return acc;
+    }, {});
+
     const meal = await prisma.mealRecord.create({
       data: {
         date,
@@ -55,7 +60,10 @@ export async function POST(request: NextRequest) {
         comboId,
         note: note || null,
         mealDishes: {
-          create: dishIds.map((dishId) => ({ dishId })),
+          create: Object.entries(dishQuantities).map(([dishId, quantity]) => ({
+            dishId,
+            quantity,
+          })),
         },
       },
       include: {
