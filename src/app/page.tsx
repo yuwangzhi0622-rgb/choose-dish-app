@@ -334,13 +334,22 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <div className="p-4 border-t border-gray-100">
+            <div className="p-4 border-t border-gray-100 flex gap-2">
+              <button
+                onClick={() => {
+                  const query = cart.map(c => `id=${c.dish.id}`).join("&");
+                  window.location.href = `/grocery?${query}`;
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-orange-100 text-orange-600 py-3 rounded-xl text-sm font-bold hover:bg-orange-200 transition-colors"
+              >
+                生成食材清单
+              </button>
               <button
                 onClick={() => {
                   setShowCart(false);
                   setShowMealDialog(true);
                 }}
-                className="w-full flex items-center justify-center gap-1.5 bg-orange-500 text-white py-3 rounded-xl text-sm font-bold hover:bg-orange-600 transition-colors"
+                className="flex-[2] flex items-center justify-center gap-1.5 bg-orange-500 text-white py-3 rounded-xl text-sm font-bold hover:bg-orange-600 transition-colors"
               >
                 <Check size={18} />
                 确认下单 ({totalItems} 项)

@@ -8,14 +8,15 @@ import {
   Heart,
   CalendarDays,
   Home,
+  BarChart3,
 } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "点菜", icon: Home },
   { href: "/dishes", label: "管理", icon: UtensilsCrossed },
   { href: "/recommend", label: "随机", icon: Shuffle },
-  { href: "/favorites", label: "收藏", icon: Heart },
   { href: "/history", label: "记录", icon: CalendarDays },
+  { href: "/stats", label: "统计", icon: BarChart3 },
 ];
 
 export default function Nav() {
