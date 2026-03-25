@@ -11,12 +11,12 @@ model Dish {
   id             String   @id @default(cuid())
   name           String
   category       String
-  imageUrl       String?
+  imageUrl       String?  @db.LongText
   spiceLevel     Int      @default(0)
   sweetnessLevel Int      @default(0)
   difficulty     String   @default("medium")
   prepTime       Int?
-  description    String?
+  description    String?  @db.Text
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   comboDishes    ComboDish[]
@@ -49,7 +49,7 @@ model MealRecord {
   mealTime    String?
   chef        String?
   personCount Int        @default(2)
-  note        String?
+  note        String?    @db.Text
   comboId     String?
   createdAt   DateTime   @default(now())
   combo       Combo?     @relation(fields: [comboId], references: [id], onDelete: SetNull)
