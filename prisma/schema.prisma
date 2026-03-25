@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Dish {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  comboDishes ComboDish[]
+  mealDishes  MealDish[]
+}
+
+model Combo {
+  id         String      @id @default(cuid())
+  name       String
+  isFavorite Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  comboDishes ComboDish[]
+  meals      MealRecord[]
+}
+
+model ComboDish {
+  id      String @id @default(cuid())
+  comboId String
+  dishId  String
+  combo   Combo  @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  dish    Dish   @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@unique([comboId, dishId])
+}
+
+model MealRecord {
+  id        String     @id @default(cuid())
+  date      String
+  comboId   String?
+  note      String?
+  createdAt DateTime   @default(now())
+  combo     Combo?     @relation(fields: [comboId], references: [id], onDelete: SetNull)
+  mealDishes MealDish[]
+}
+
+model MealDish {
+  id           String     @id @default(cuid())
+  mealRecordId String
+  dishId       String
+  mealRecord   MealRecord @relation(fields: [mealRecordId], references: [id], onDelete: Cascade)
+  dish         Dish       @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@unique([mealRecordId, dishId])
+}

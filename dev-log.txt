@@ -1,0 +1,14 @@
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3002
+- Network:       http://198.18.0.1:3002
+- Environments: .env
+✓ Ready in 272ms
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3001
+- PID:          41704
+- Dir:          C:\Users\yuwangzhi\Desktop\test\choose_dish_app
+- Log:          .next\dev\logs\next-development.log
+
+Run taskkill /PID 41704 /F to stop it.
+[?25h
