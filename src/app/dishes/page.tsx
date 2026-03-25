@@ -419,6 +419,7 @@ export default function DishesPage() {
             </button>
           </form>
         </div>
+        </div>
       )}
 
       {/* Dishes list */}
