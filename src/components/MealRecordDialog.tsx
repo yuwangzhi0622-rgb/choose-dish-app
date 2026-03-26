@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { X, Check, Users, ChefHat } from "lucide-react";
 import { MEAL_TYPES } from "@/lib/image-utils";
+import { MealTypeIcon } from "@/components/CategoryIcon";
 
 function pad2(value: number) {
   return String(value).padStart(2, "0");
@@ -152,87 +153,88 @@ export default function MealRecordDialog({
 
   return (
     <div
-      className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-[60] sm:p-4 transition-opacity"
+      className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-[60] sm:p-4 transition-opacity"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-t-3xl sm:rounded-[2rem] w-full max-w-lg p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:p-8 shadow-2xl animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto flex flex-col gap-6"
+        className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-lg p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:p-7 shadow-2xl animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto flex flex-col gap-5"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-bold text-gray-900 tracking-tight">记录用餐</h3>
+          <h3 className="text-lg font-semibold text-stone-900 tracking-tight">记录用餐</h3>
           <button 
             onClick={onClose} 
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-50 text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-stone-300"
             aria-label="关闭"
           >
-            <X size={18} strokeWidth={2.5} />
+            <X size={16} strokeWidth={2} />
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Meal type */}
           <div>
-            <label className="text-[13px] font-bold text-gray-700 mb-2 block uppercase tracking-wider">用餐类型</label>
-            <div className="flex gap-2">
+            <label className="text-xs font-semibold text-stone-500 mb-2 block uppercase tracking-wider">用餐类型</label>
+            <div className="flex gap-1.5">
               {MEAL_TYPES.map((m) => (
                 <button
                   key={m.value}
                   type="button"
                   onClick={() => setMealType(m.value)}
-                  className={`flex-1 py-3 rounded-2xl text-[15px] font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-stone-400 flex items-center justify-center gap-1.5 ${
                     mealType === m.value
-                      ? "bg-blue-600 text-white shadow-md scale-[1.02]"
-                      : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-transparent hover:border-gray-200"
+                      ? "bg-stone-900 text-white shadow-sm"
+                      : "bg-stone-50 text-stone-600 border border-stone-100 hover:bg-stone-100 hover:border-stone-200 active:scale-[0.97]"
                   }`}
                 >
-                  <span className="mr-1">{m.emoji}</span> {m.label}
+                  <MealTypeIcon mealType={m.value} size={14} className={mealType === m.value ? "text-stone-400" : "text-stone-400"} />
+                  {m.label}
                 </button>
               ))}
             </div>
           </div>
 
           {/* Time & Chef */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[13px] font-bold text-gray-700 mb-2 block uppercase tracking-wider">用餐日期</label>
+              <label className="text-xs font-semibold text-stone-500 mb-2 block uppercase tracking-wider">用餐日期</label>
               <input
                 type="date"
                 value={mealDate}
                 onChange={(e) => setMealDate(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-[15px] font-medium transition-all"
+                className="w-full px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-stone-400 text-sm font-medium transition-all"
               />
             </div>
             <div>
-              <label className="text-[13px] font-bold text-gray-700 mb-2 block uppercase tracking-wider">用餐时间</label>
+              <label className="text-xs font-semibold text-stone-500 mb-2 block uppercase tracking-wider">用餐时间</label>
               <input
                 type="time"
                 value={mealTime}
                 onChange={(e) => setMealTime(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-[15px] font-medium transition-all"
+                className="w-full px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-stone-400 text-sm font-medium transition-all"
               />
             </div>
           </div>
           
           <div>
-            <label className="text-[13px] font-bold text-gray-700 mb-2 uppercase tracking-wider flex items-center gap-1.5">
-              <ChefHat size={16} className="text-gray-400" /> 主厨是谁？
+            <label className="text-xs font-semibold text-stone-500 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+              <ChefHat size={14} strokeWidth={1.5} className="text-stone-400" /> 主厨是谁？
             </label>
             {loadingChefs ? (
-              <div className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 text-[15px] text-gray-400">
+              <div className="w-full px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-100 text-sm text-stone-400">
                 正在加载厨师列表...
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                 {chefs.map((chef) => (
                   <button
                     key={chef.id}
                     type="button"
                     onClick={() => setChefId(chef.id)}
-                    className={`px-4 py-3 rounded-2xl text-[15px] font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-stone-400 ${
                       chefId === chef.id
-                        ? "bg-blue-600 text-white shadow-md scale-[1.02]"
-                        : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-100"
+                        ? "bg-stone-900 text-white shadow-sm"
+                        : "bg-stone-50 text-stone-600 border border-stone-100 hover:bg-stone-100 hover:border-stone-200 active:scale-[0.97]"
                     }`}
                   >
                     {chef.name}
@@ -244,24 +246,24 @@ export default function MealRecordDialog({
 
           {/* Person count */}
           <div>
-            <label className="text-[13px] font-bold text-gray-700 mb-2 uppercase tracking-wider flex items-center gap-1.5">
-              <Users size={16} className="text-gray-400" /> 用餐人数
+            <label className="text-xs font-semibold text-stone-500 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+              <Users size={14} strokeWidth={1.5} className="text-stone-400" /> 用餐人数
             </label>
-            <div className="flex items-center gap-4 bg-gray-50 w-max p-1.5 rounded-full border border-gray-100">
+            <div className="flex items-center gap-3 bg-stone-50 w-max p-0.5 rounded-full border border-stone-100">
               <button
                 type="button"
                 onClick={() => setPersonCount(Math.max(1, personCount - 1))}
-                className="w-10 h-10 rounded-full bg-white shadow-sm hover:bg-gray-100 text-gray-700 flex items-center justify-center text-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-9 h-9 rounded-full bg-white hover:bg-stone-100 text-stone-600 flex items-center justify-center text-lg font-medium transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-stone-400"
               >
                 -
               </button>
-              <span className="text-xl font-bold text-gray-900 w-8 text-center tabular-nums">
+              <span className="text-lg font-semibold text-stone-900 w-6 text-center tabular-nums">
                 {personCount}
               </span>
               <button
                 type="button"
                 onClick={() => setPersonCount(Math.min(20, personCount + 1))}
-                className="w-10 h-10 rounded-full bg-white shadow-sm hover:bg-gray-100 text-gray-700 flex items-center justify-center text-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-9 h-9 rounded-full bg-white hover:bg-stone-100 text-stone-600 flex items-center justify-center text-lg font-medium transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-stone-400"
               >
                 +
               </button>
@@ -270,27 +272,27 @@ export default function MealRecordDialog({
 
           {/* Notes */}
           <div>
-            <label className="text-[13px] font-bold text-gray-700 mb-2 block uppercase tracking-wider">补充备注</label>
+            <label className="text-xs font-semibold text-stone-500 mb-2 block uppercase tracking-wider">补充备注</label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="如：少盐、不要香菜、微辣..."
               rows={2}
-              className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-[15px] resize-none transition-all"
+              className="w-full px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-stone-400 text-sm resize-none transition-all"
             />
           </div>
         </div>
 
         {/* Submit */}
-        <div className="pt-2">
+        <div className="pt-1">
           <button
             onClick={handleSave}
             disabled={saving || !mealDate || !chefId || loadingChefs}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3.5 rounded-full text-[17px] font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+            className="w-full flex items-center justify-center gap-2 bg-stone-900 text-white py-3 rounded-xl text-sm font-semibold hover:bg-stone-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
           >
             {saving ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -298,7 +300,7 @@ export default function MealRecordDialog({
               </>
             ) : (
               <>
-                <Check size={20} strokeWidth={2.5} />
+                <Check size={16} strokeWidth={2} />
                 确认记录
               </>
             )}

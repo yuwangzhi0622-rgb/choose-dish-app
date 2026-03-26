@@ -35,37 +35,37 @@ export function compressImage(file: File, maxWidth = 400, quality = 0.6): Promis
 }
 
 export const SPICE_LEVELS = [
-  { value: 0, label: "不辣", emoji: "😊" },
-  { value: 1, label: "微辣", emoji: "🌶️" },
-  { value: 2, label: "中辣", emoji: "🌶️🌶️" },
-  { value: 3, label: "特辣", emoji: "🌶️🌶️🌶️" },
+  { value: 0, label: "不辣" },
+  { value: 1, label: "微辣" },
+  { value: 2, label: "中辣" },
+  { value: 3, label: "特辣" },
 ] as const;
 
 export const SWEETNESS_LEVELS = [
-  { value: 0, label: "不甜", emoji: "😐" },
-  { value: 1, label: "微甜", emoji: "🍬" },
-  { value: 2, label: "中甜", emoji: "🍬🍬" },
-  { value: 3, label: "很甜", emoji: "🍬🍬🍬" },
+  { value: 0, label: "不甜" },
+  { value: 1, label: "微甜" },
+  { value: 2, label: "中甜" },
+  { value: 3, label: "很甜" },
 ] as const;
 
 export const DIFFICULTY_OPTIONS = [
-  { value: "easy", label: "简单", emoji: "⭐" },
-  { value: "medium", label: "中等", emoji: "⭐⭐" },
-  { value: "hard", label: "困难", emoji: "⭐⭐⭐" },
+  { value: "easy", label: "简单" },
+  { value: "medium", label: "中等" },
+  { value: "hard", label: "困难" },
 ] as const;
 
 export const MEAL_TYPES = [
-  { value: "breakfast", label: "早餐", emoji: "🌅" },
-  { value: "lunch", label: "午餐", emoji: "☀️" },
-  { value: "dinner", label: "晚餐", emoji: "🌙" },
-  { value: "snack", label: "加餐", emoji: "🍪" },
+  { value: "breakfast", label: "早餐" },
+  { value: "lunch", label: "午餐" },
+  { value: "dinner", label: "晚餐" },
+  { value: "snack", label: "加餐" },
 ] as const;
 
 export const ORDER_STATUS_OPTIONS = [
-  { value: "pending", label: "待接单", emoji: "⏳" },
-  { value: "accepted", label: "已接单", emoji: "✅" },
-  { value: "rejected", label: "已拒绝", emoji: "❌" },
-  { value: "completed", label: "已完成", emoji: "🎉" },
+  { value: "pending", label: "待接单" },
+  { value: "accepted", label: "已接单" },
+  { value: "rejected", label: "已拒绝" },
+  { value: "completed", label: "已完成" },
 ] as const;
 
 export function getSpiceLabel(level: number): string {
@@ -84,14 +84,8 @@ export function getMealTypeLabel(value: string): string {
   return MEAL_TYPES.find((m) => m.value === value)?.label ?? "午餐";
 }
 
-export function getMealTypeEmoji(value: string): string {
-  return MEAL_TYPES.find((m) => m.value === value)?.emoji ?? "☀️";
-}
 
 export function getOrderStatusLabel(value: string): string {
   return ORDER_STATUS_OPTIONS.find((item) => item.value === value)?.label ?? "待接单";
 }
 
-export function getOrderStatusEmoji(value: string): string {
-  return ORDER_STATUS_OPTIONS.find((item) => item.value === value)?.emoji ?? "⏳";
-}

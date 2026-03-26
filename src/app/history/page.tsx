@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, CalendarDays, Users, ChefHat, Clock, ImagePlus, X } from "lucide-react";
-import { getCategoryEmoji } from "@/lib/categories";
+import { Trash2, CalendarDays, Users, ChefHat, Clock, ImagePlus, X, Star } from "lucide-react";
 import {
   compressImage,
-  getMealTypeEmoji,
   getMealTypeLabel,
-  getOrderStatusEmoji,
   getOrderStatusLabel,
 } from "@/lib/image-utils";
+import { CategoryIcon, MealTypeIcon, OrderStatusIcon } from "@/components/CategoryIcon";
 
 interface Dish {
   id: string;
@@ -246,16 +244,10 @@ export default function HistoryPage() {
   };
 
   const getStatusStyle = (status: string) => {
-    if (status === "accepted") {
-      return "bg-green-100 text-green-800 border-green-200";
-    }
-    if (status === "rejected") {
-      return "bg-red-100 text-red-800 border-red-200";
-    }
-    if (status === "completed") {
-      return "bg-blue-100 text-blue-800 border-blue-200";
-    }
-    return "bg-amber-100 text-amber-800 border-amber-200";
+    if (status === "accepted") return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    if (status === "rejected") return "bg-red-50 text-red-600 border-red-200";
+    if (status === "completed") return "bg-stone-100 text-stone-700 border-stone-200";
+    return "bg-amber-50 text-amber-700 border-amber-200";
   };
 
   const formatFullDate = (dateStr: string) => {
@@ -271,124 +263,121 @@ export default function HistoryPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-gray-400 font-medium tracking-wide">加载历史记录中...</div>
+        <div className="text-stone-400 font-medium tracking-wide">加载历史记录中...</div>
       </div>
     );
   }
 
   return (
     <div className="max-w-[1024px] mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 mt-6">
-        <div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-3">
-            历史记录
-          </h1>
-          <p className="text-lg text-gray-500">
-            回顾过往的 <span className="font-semibold text-gray-900">{meals.length}</span> 次美好用餐
-          </p>
-        </div>
+      <div className="mb-8 mt-6">
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-stone-900 mb-2">
+          历史记录
+        </h1>
+        <p className="text-base text-stone-400">
+          回顾过往的 <span className="font-semibold text-stone-700">{meals.length}</span> 次用餐
+        </p>
       </div>
 
       {meals.length === 0 ? (
-        <div className="text-center py-24 bg-white rounded-[2rem] shadow-sm border border-gray-100">
-          <CalendarDays size={48} className="mx-auto mb-4 text-gray-300" strokeWidth={1.5} />
-          <p className="text-2xl font-semibold text-gray-900 mb-3">暂无用餐记录</p>
-          <p className="text-gray-500 text-lg">去点菜页面生成搭配并记录吧</p>
+        <div className="text-center py-20 bg-white rounded-2xl border border-stone-100">
+          <CalendarDays size={36} className="mx-auto mb-3 text-stone-300" strokeWidth={1.5} />
+          <p className="text-xl font-semibold text-stone-900 mb-2">暂无用餐记录</p>
+          <p className="text-stone-400 text-sm">去点菜页面生成搭配并记录吧</p>
         </div>
       ) : (
         <div className="space-y-6">
           {meals.map((meal) => (
             <div
               key={meal.id}
-              className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 group"
+              className="bg-white rounded-2xl p-5 sm:p-6 border border-stone-100 hover:border-stone-200 hover:shadow-lg transition-all duration-300 group"
             >
               {(() => {
                 const feedbackDraft = getFeedbackDraft(meal);
 
                 return (
                   <>
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-6 gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-5 gap-3">
                       <div className="min-w-0">
-                        <div className="flex items-center gap-3 flex-wrap mb-2">
-                          <span className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          <span className="text-lg font-semibold text-stone-900 tracking-tight">
                             {formatDate(meal.date)}
                           </span>
-                          <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1.5 border border-gray-200/60">
-                            {getMealTypeEmoji(meal.mealType)} {getMealTypeLabel(meal.mealType)}
+                          <span className="bg-stone-50 text-stone-600 px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-stone-100">
+                            <MealTypeIcon mealType={meal.mealType} size={13} className="text-stone-400" /> {getMealTypeLabel(meal.mealType)}
                           </span>
                           {meal.mealTime && (
-                            <span className="flex items-center gap-1 text-sm font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
-                              <Clock size={14} /> {meal.mealTime}
+                            <span className="flex items-center gap-1 text-xs font-medium text-stone-400">
+                              <Clock size={12} strokeWidth={1.5} /> {meal.mealTime}
                             </span>
                           )}
                           <span
-                            className={`px-3 py-1 rounded-full text-sm font-bold border flex items-center gap-1.5 ${getStatusStyle(meal.orderStatus)}`}
+                            className={`px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1 ${getStatusStyle(meal.orderStatus)}`}
                           >
-                            {getOrderStatusEmoji(meal.orderStatus)} {getOrderStatusLabel(meal.orderStatus)}
+                            <OrderStatusIcon status={meal.orderStatus} size={12} /> {getOrderStatusLabel(meal.orderStatus)}
                           </span>
                         </div>
-                        <div className="text-[15px] font-medium text-gray-400">
+                        <div className="text-xs text-stone-300">
                           {formatFullDate(meal.date)}
                         </div>
                       </div>
                       
                       <button
                         onClick={() => handleDelete(meal.id)}
-                        className="p-2 sm:p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-red-500 opacity-100 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+                        className="p-2 bg-stone-50 text-stone-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all active:scale-90 shrink-0 focus:outline-none focus:ring-2 focus:ring-stone-300 opacity-100 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100"
                         aria-label="删除记录"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={15} strokeWidth={1.5} />
                       </button>
                     </div>
 
-                    <div className="flex items-center gap-4 mb-5 text-[15px] text-gray-600 font-medium flex-wrap">
+                    <div className="flex items-center gap-2 mb-4 flex-wrap">
                       {meal.chef && (
-                        <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
-                          <ChefHat size={16} className="text-gray-400" /> {meal.chef.name}
+                        <span className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1 rounded-lg text-xs font-medium text-stone-600 border border-stone-100">
+                          <ChefHat size={13} strokeWidth={1.5} className="text-stone-400" /> {meal.chef.name}
                         </span>
                       )}
                       {meal.personCount > 0 && (
-                        <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
-                          <Users size={16} className="text-gray-400" /> {meal.personCount} 人就餐
+                        <span className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1 rounded-lg text-xs font-medium text-stone-600 border border-stone-100">
+                          <Users size={13} strokeWidth={1.5} className="text-stone-400" /> {meal.personCount}人
                         </span>
                       )}
                     </div>
 
-                    <div className="flex flex-wrap gap-2.5 mb-6">
+                    <div className="flex flex-wrap gap-1.5 mb-5">
                       {meal.mealDishes.map((md) => (
                         <span
                           key={md.id}
-                          className="bg-gray-100 text-gray-800 px-4 py-2 rounded-xl text-[15px] font-medium border border-gray-200/60"
+                          className="bg-stone-50 text-stone-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-stone-100 inline-flex items-center gap-1.5"
                         >
-                          <span className="mr-1.5">{getCategoryEmoji(md.dish.category)}</span>
+                          <CategoryIcon category={md.dish.category} size={13} className="text-stone-400" />
                           {md.dish.name}
-                          {md.quantity > 1 ? <span className="text-gray-400 ml-1.5 font-bold">×{md.quantity}</span> : ""}
+                          {md.quantity > 1 ? <span className="text-stone-300 font-semibold">×{md.quantity}</span> : ""}
                         </span>
                       ))}
                     </div>
 
                     {meal.note && (
-                      <div className="mb-6 bg-yellow-50/50 border border-yellow-100 p-4 rounded-2xl text-[15px] text-gray-700 leading-relaxed">
-                        <span className="font-semibold text-yellow-700 mr-2">备注:</span> 
-                        {meal.note}
+                      <div className="mb-5 bg-stone-50 border border-stone-100 p-3 rounded-xl text-sm text-stone-600 leading-relaxed">
+                        <span className="font-semibold text-stone-500 mr-1.5">备注:</span>{meal.note}
                       </div>
                     )}
 
                     {/* Order Status Actions */}
-                    <div className="flex flex-wrap gap-3 mb-6 pt-6 border-t border-gray-100">
+                    <div className="flex flex-wrap gap-2 mb-5 pt-4 border-t border-stone-100">
                       {meal.orderStatus === "pending" && (
                         <>
                           <button
                             onClick={() => handlePatchMeal(meal.id, { orderStatus: "accepted" })}
                             disabled={updatingId === meal.id}
-                            className="px-5 py-2.5 rounded-xl bg-green-600 text-white text-[15px] font-bold hover:bg-green-700 disabled:opacity-50 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            className="px-4 py-2 rounded-lg bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 active:scale-[0.97] disabled:opacity-40 transition-all focus:outline-none focus:ring-2 focus:ring-stone-400"
                           >
                             厨师接单
                           </button>
                           <button
                             onClick={() => handlePatchMeal(meal.id, { orderStatus: "rejected" })}
                             disabled={updatingId === meal.id}
-                            className="px-5 py-2.5 rounded-xl bg-red-50 text-red-600 border border-red-200 text-[15px] font-bold hover:bg-red-100 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="px-4 py-2 rounded-lg bg-white text-stone-600 border border-stone-200 text-sm font-semibold hover:bg-stone-50 hover:border-stone-300 active:scale-[0.97] disabled:opacity-40 transition-all focus:outline-none focus:ring-2 focus:ring-stone-300"
                           >
                             拒绝接单
                           </button>
@@ -398,7 +387,7 @@ export default function HistoryPage() {
                         <button
                           onClick={() => handlePatchMeal(meal.id, { orderStatus: "completed" })}
                           disabled={updatingId === meal.id}
-                          className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-[15px] font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="px-4 py-2 rounded-lg bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 active:scale-[0.97] disabled:opacity-40 transition-all focus:outline-none focus:ring-2 focus:ring-stone-400"
                         >
                           标记完成
                         </button>
@@ -407,7 +396,7 @@ export default function HistoryPage() {
                         <button
                           onClick={() => handlePatchMeal(meal.id, { orderStatus: "pending" })}
                           disabled={updatingId === meal.id}
-                          className="px-5 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-[15px] font-bold hover:bg-amber-100 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          className="px-4 py-2 rounded-lg bg-white text-stone-600 border border-stone-200 text-sm font-semibold hover:bg-stone-50 hover:border-stone-300 active:scale-[0.97] disabled:opacity-40 transition-all focus:outline-none focus:ring-2 focus:ring-stone-300"
                         >
                           重新待接单
                         </button>
@@ -416,7 +405,7 @@ export default function HistoryPage() {
                         <button
                           onClick={() => handlePatchMeal(meal.id, { orderStatus: "accepted" })}
                           disabled={updatingId === meal.id}
-                          className="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-[15px] font-bold hover:bg-gray-200 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+                          className="px-4 py-2 rounded-lg bg-white text-stone-500 border border-stone-200 text-sm font-medium hover:bg-stone-50 hover:border-stone-300 active:scale-[0.97] disabled:opacity-40 transition-all focus:outline-none focus:ring-2 focus:ring-stone-300"
                         >
                           改回已接单
                         </button>
@@ -425,30 +414,30 @@ export default function HistoryPage() {
 
                     {/* Feedback Section */}
                     {(meal.orderStatus === "completed" || meal.feedbackRating || meal.feedbackComment || meal.feedbackImages.length > 0) && (
-                      <div className="mt-2 bg-gray-50/80 border border-gray-100 p-5 sm:p-6 rounded-[1.5rem] focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
-                        <div className="text-[17px] font-bold text-gray-900 mb-4 tracking-tight">
+                      <div className="mt-1 bg-stone-50 border border-stone-100 p-4 sm:p-5 rounded-xl">
+                        <div className="text-sm font-semibold text-stone-700 mb-3">
                           {meal.chef ? `给 ${meal.chef.name} 的反馈` : "客户反馈"}
                         </div>
                         
                         <div className="flex flex-col sm:flex-row sm:items-start gap-5">
                           <div className="flex flex-col gap-2 shrink-0">
-                            <div className="flex items-center gap-1.5 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm inline-flex w-max">
+                            <div className="flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border border-stone-200 w-max">
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <button
                                   key={`${meal.id}-star-${star}`}
                                   type="button"
                                   onClick={() => updateFeedbackDraft(meal.id, { rating: star })}
-                                  className={`text-2xl leading-none transition-transform hover:scale-110 focus:outline-none focus:scale-110 ${
-                                    star <= feedbackDraft.rating ? "text-yellow-400 drop-shadow-sm" : "text-gray-200"
+                                  className={`p-0.5 transition-all hover:scale-110 active:scale-95 focus:outline-none ${
+                                    star <= feedbackDraft.rating ? "text-amber-400" : "text-stone-200"
                                   }`}
                                   aria-label={`${star}星`}
                                 >
-                                  ★
+                                  <Star size={18} fill={star <= feedbackDraft.rating ? "currentColor" : "none"} strokeWidth={1.5} />
                                 </button>
                               ))}
                             </div>
-                            <div className="text-sm font-semibold text-gray-500 px-1">
-                              {feedbackDraft.rating > 0 ? `${feedbackDraft.rating} 星评价` : "暂未评分"}
+                            <div className="text-xs font-medium text-stone-400 px-1">
+                              {feedbackDraft.rating > 0 ? `${feedbackDraft.rating} 星` : "未评分"}
                             </div>
                           </div>
                           
@@ -457,18 +446,18 @@ export default function HistoryPage() {
                               value={feedbackDraft.comment}
                               onChange={(e) => updateFeedbackDraft(meal.id, { comment: e.target.value })}
                               placeholder="写下客户的真实反馈，比如口味、分量、改进建议..."
-                              rows={3}
-                              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-[15px] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-shadow shadow-sm"
+                              rows={2}
+                              className="w-full px-3 py-2.5 rounded-lg border border-stone-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none transition-all"
                             />
                             <div className="space-y-3">
                               <div className="flex items-center justify-between gap-3 flex-wrap">
                                 <label
                                   htmlFor={`feedback-images-${meal.id}`}
-                                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:border-blue-400 hover:text-blue-600 transition-colors cursor-pointer"
+                                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-stone-300 bg-white text-stone-600 text-xs font-medium hover:border-stone-400 hover:text-stone-800 active:scale-[0.97] transition-all cursor-pointer"
                                 >
-                                  <ImagePlus size={16} /> 上传反馈图片
+                                  <ImagePlus size={14} strokeWidth={1.5} /> 上传图片
                                 </label>
-                                <span className="text-xs text-gray-400">最多 6 张，自动压缩</span>
+                                <span className="text-xs text-stone-300">最多6张</span>
                               </div>
                               <input
                                 id={`feedback-images-${meal.id}`}
@@ -513,7 +502,7 @@ export default function HistoryPage() {
                               <button
                                 onClick={() => handleSaveFeedback(meal)}
                                 disabled={updatingId === meal.id}
-                                className="px-6 py-2.5 rounded-xl bg-gray-900 text-white text-[15px] font-bold hover:bg-black disabled:opacity-50 disabled:bg-gray-400 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900/50"
+                                className="px-5 py-2 rounded-lg bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 active:scale-[0.97] disabled:opacity-40 transition-all focus:outline-none focus:ring-2 focus:ring-stone-400"
                               >
                                 {updatingId === meal.id ? "保存中..." : "保存反馈"}
                               </button>

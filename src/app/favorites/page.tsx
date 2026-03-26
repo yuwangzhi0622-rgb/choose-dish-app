@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Heart, Trash2, Save, HeartOff } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import MealRecordDialog from "@/components/MealRecordDialog";
-import { getCategoryEmoji, getCategoryLabel } from "@/lib/categories";
+import { getCategoryLabel } from "@/lib/categories";
+import { CategoryIcon, SpiceIndicator } from "@/components/CategoryIcon";
 
 interface Dish {
   id: string;
@@ -130,7 +131,7 @@ export default function FavoritesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-400">加载中...</div>
+        <div className="text-stone-400 font-medium tracking-wide">加载中...</div>
       </div>
     );
   }
@@ -143,10 +144,12 @@ export default function FavoritesPage() {
       />
 
       {combos.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <Heart size={48} className="mx-auto mb-3 opacity-30" />
-          <p className="text-lg mb-2">暂无收藏</p>
-          <p className="text-sm">去推荐页面生成搭配并收藏吧</p>
+        <div className="text-center py-20 bg-white rounded-2xl border border-stone-100">
+          <div className="w-14 h-14 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Heart size={22} strokeWidth={1.5} className="text-stone-300" />
+          </div>
+          <p className="text-lg font-semibold text-stone-900 mb-1">暂无收藏</p>
+          <p className="text-sm text-stone-400">去推荐页面生成搭配并收藏吧</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -155,48 +158,48 @@ export default function FavoritesPage() {
             return (
               <div
                 key={combo.id}
-                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
+                className="bg-white rounded-2xl p-4 border border-stone-100 hover:border-stone-200 hover:shadow-md transition-all duration-300"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">{combo.name}</h3>
-                  <div className="flex items-center gap-1">
+                  <h3 className="font-semibold text-stone-900 text-sm">{combo.name}</h3>
+                  <div className="flex items-center gap-0.5">
                     <button
                       onClick={() => handleToggleFavorite(combo)}
-                      className="p-2 text-pink-500 hover:text-pink-600 transition-colors"
+                      className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-all active:scale-90"
                     >
                       {combo.isFavorite ? (
-                        <Heart size={18} fill="currentColor" />
+                        <Heart size={16} fill="currentColor" strokeWidth={1.5} className="text-stone-700" />
                       ) : (
-                        <HeartOff size={18} />
+                        <HeartOff size={16} strokeWidth={1.5} />
                       )}
                     </button>
                     <button
                       onClick={() => handleDelete(combo.id)}
-                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      className="p-1.5 text-stone-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all active:scale-90"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={14} strokeWidth={1.5} />
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-2 mb-3">
+                <div className="space-y-1.5 mb-3">
                   {Object.entries(groups).map(([category, dishes]) => (
                     <div key={category} className="flex items-start gap-2">
-                      <span className="text-xs text-gray-400 shrink-0 mt-0.5 w-16">
-                        {getCategoryEmoji(category)}{" "}
+                      <span className="text-[10px] text-stone-400 shrink-0 mt-0.5 w-14 flex items-center gap-1">
+                        <CategoryIcon category={category} size={11} className="text-stone-400" />
                         {getCategoryLabel(category)}
                       </span>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-1">
                         {dishes.map((dish) => (
                           <span
                             key={dish.id}
-                            className="inline-flex items-center gap-1 bg-orange-50 text-orange-700 px-2.5 py-1 rounded-lg text-xs font-medium"
+                            className="inline-flex items-center gap-1 bg-stone-50 text-stone-600 px-2 py-1 rounded-lg text-[10px] font-medium border border-stone-100"
                           >
                             {dish.imageUrl ? (
-                              <img src={dish.imageUrl} alt={dish.name} className="w-4 h-4 rounded object-cover" />
+                              <img src={dish.imageUrl} alt={dish.name} className="w-3.5 h-3.5 rounded object-cover" />
                             ) : null}
                             {dish.name}
-                            {(dish.spiceLevel ?? 0) > 0 && <span className="text-red-500">{"\ud83c\udf36\ufe0f".repeat(dish.spiceLevel!)}</span>}
+                            {(dish.spiceLevel ?? 0) > 0 && <SpiceIndicator level={dish.spiceLevel!} size={8} />}
                           </span>
                         ))}
                       </div>
@@ -206,9 +209,9 @@ export default function FavoritesPage() {
 
                 <button
                   onClick={() => handleUseCombo(combo)}
-                  className="w-full flex items-center justify-center gap-1.5 bg-green-50 text-green-700 py-2 rounded-xl text-sm font-medium hover:bg-green-100 transition-colors"
+                  className="w-full flex items-center justify-center gap-1.5 bg-stone-900 text-white py-2 rounded-xl text-xs font-medium hover:bg-stone-800 active:scale-[0.98] transition-all"
                 >
-                  <Save size={15} />
+                  <Save size={13} strokeWidth={1.5} />
                   今天吃这个
                 </button>
               </div>
