@@ -21,6 +21,7 @@ model Dish {
   tags           String?  @db.Text
   chefNote       String?  @db.Text
   description    String?  @db.Text
+  isQuickEntry   Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   comboDishes    ComboDish[]

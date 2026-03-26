@@ -40,7 +40,7 @@ export default function Home() {
         const res = await fetch("/api/dishes");
         if (!res.ok) return;
         const data: Dish[] = await res.json();
-        if (!cancelled) setDishes(data);
+        if (!cancelled) setDishes(data.filter((d) => !(d as Dish & { isQuickEntry?: boolean }).isQuickEntry));
       } catch {}
       if (!cancelled) setLoading(false);
     };

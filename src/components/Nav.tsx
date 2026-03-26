@@ -7,6 +7,7 @@ import { UtensilsCrossed, Menu, X } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "选菜" },
+  { href: "/quick-order", label: "快捷下单" },
   { href: "/dishes", label: "菜品管理" },
   { href: "/recommend", label: "随机推荐" },
   { href: "/history", label: "历史记录" },

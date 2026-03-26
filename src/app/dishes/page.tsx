@@ -95,7 +95,7 @@ export default function DishesPage() {
         throw new Error(data.error ?? "加载菜品失败");
       }
 
-      setDishes(data);
+      setDishes(Array.isArray(data) ? data.filter((d: { isQuickEntry?: boolean }) => !d.isQuickEntry) : data);
     } catch (fetchError) {
       setError(
         fetchError instanceof Error ? fetchError.message : "加载菜品失败"

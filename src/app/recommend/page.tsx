@@ -64,7 +64,8 @@ export default function RecommendPage() {
           return;
         }
 
-        const dishes: Dish[] = await res.json();
+        const allDishes: Dish[] = await res.json();
+        const dishes = allDishes.filter((d) => !(d as Dish & { isQuickEntry?: boolean }).isQuickEntry);
         const counts: Record<string, number> = {};
         dishes.forEach((d) => {
           counts[d.category] = (counts[d.category] || 0) + 1;
