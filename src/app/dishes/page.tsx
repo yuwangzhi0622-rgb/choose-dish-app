@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Pencil, Trash2, X, Check, Camera, Clock, Search, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Camera, Clock, Search, ChevronRight, ChefHat } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import {
   CATEGORIES,
@@ -42,7 +42,26 @@ interface Dish {
   createdAt: string;
 }
 
+interface Chef {
+  id: string;
+  name: string;
+  avatar: string | null;
+  createdAt: string;
+}
+
 export default function DishesPage() {
+  const [activeTab, setActiveTab] = useState<"dishes" | "chefs">("dishes");
+
+  // ----- Chef management state -----
+  const [chefs, setChefs] = useState<Chef[]>([]);
+  const [chefsLoading, setChefsLoading] = useState(true);
+  const [chefError, setChefError] = useState("");
+  const [showChefForm, setShowChefForm] = useState(false);
+  const [editingChef, setEditingChef] = useState<Chef | null>(null);
+  const [chefName, setChefName] = useState("");
+  const [chefSubmitting, setChefSubmitting] = useState(false);
+
+  // ----- Dish management state -----
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -89,6 +108,79 @@ export default function DishesPage() {
   useEffect(() => {
     fetchDishes();
   }, [fetchDishes]);
+
+  // ----- Chef CRUD -----
+  const fetchChefs = useCallback(async () => {
+    try {
+      setChefError("");
+      const res = await fetch("/api/chefs");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "加载厨师失败");
+      setChefs(data);
+    } catch (err) {
+      setChefError(err instanceof Error ? err.message : "加载厨师失败");
+    } finally {
+      setChefsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchChefs();
+  }, [fetchChefs]);
+
+  const handleChefSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chefName.trim()) return;
+    try {
+      setChefSubmitting(true);
+      setChefError("");
+      const res = editingChef
+        ? await fetch(`/api/chefs/${editingChef.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: chefName.trim() }),
+          })
+        : await fetch("/api/chefs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: chefName.trim() }),
+          });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "保存厨师失败");
+      resetChefForm();
+      await fetchChefs();
+    } catch (err) {
+      setChefError(err instanceof Error ? err.message : "保存厨师失败");
+    } finally {
+      setChefSubmitting(false);
+    }
+  };
+
+  const handleChefDelete = async (id: string) => {
+    if (!confirm("确定删除这位厨师吗？关联的历史记录将取消厨师关联。")) return;
+    try {
+      setChefError("");
+      const res = await fetch(`/api/chefs/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "删除厨师失败");
+      await fetchChefs();
+    } catch (err) {
+      setChefError(err instanceof Error ? err.message : "删除厨师失败");
+    }
+  };
+
+  const handleChefEdit = (chef: Chef) => {
+    setChefError("");
+    setEditingChef(chef);
+    setChefName(chef.name);
+    setShowChefForm(true);
+  };
+
+  const resetChefForm = () => {
+    setShowChefForm(false);
+    setEditingChef(null);
+    setChefName("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,37 +359,193 @@ export default function DishesPage() {
     count: dishes.filter((d) => d.category === cat.value).length,
   }));
 
-  if (loading) {
+  if (loading && chefsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-gray-400 font-medium tracking-wide">加载菜品库中...</div>
+        <div className="text-gray-400 font-medium tracking-wide">加载中...</div>
       </div>
     );
   }
 
   return (
     <div className="max-w-[1024px] mx-auto">
+      {/* Page header with tab switcher */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-2">
-            菜品库
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">
+            {activeTab === "dishes" ? "菜品库" : "厨师管理"}
           </h1>
-          <p className="text-gray-500 text-lg">
-            共收录 <span className="font-semibold text-gray-900">{dishes.length}</span> 道私房好菜
-          </p>
+          <div className="flex gap-2 p-1 bg-gray-100/80 rounded-2xl w-max">
+            <button
+              onClick={() => setActiveTab("dishes")}
+              className={`px-5 py-2 text-[15px] font-semibold rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                activeTab === "dishes"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              🍳 菜品 ({dishes.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("chefs")}
+              className={`px-5 py-2 text-[15px] font-semibold rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                activeTab === "chefs"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              👨‍🍳 厨师 ({chefs.length})
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => {
-            setError("");
-            setShowForm(true);
-          }}
-          className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-full font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm"
-        >
-          <Plus size={18} strokeWidth={2.5} />
-          添加新菜品
-        </button>
+        {activeTab === "dishes" ? (
+          <button
+            onClick={() => {
+              setError("");
+              setShowForm(true);
+            }}
+            className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-full font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm"
+          >
+            <Plus size={18} strokeWidth={2.5} />
+            添加新菜品
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setChefError("");
+              setShowChefForm(true);
+            }}
+            className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-full font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm"
+          >
+            <Plus size={18} strokeWidth={2.5} />
+            添加新厨师
+          </button>
+        )}
       </div>
 
+      {/* ========== CHEF TAB ========== */}
+      {activeTab === "chefs" && (
+        <>
+          {chefError ? (
+            <div className="mb-8 rounded-2xl border border-red-200 bg-red-50/50 px-6 py-4 text-[15px] font-medium text-red-600 shadow-sm flex items-center justify-between">
+              <span>{chefError}</span>
+              <button onClick={() => setChefError("")} className="p-1 hover:bg-red-100 rounded-full transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+          ) : null}
+
+          {showChefForm && (
+            <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-[60] sm:p-4 transition-opacity">
+              <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-300">
+                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                  <h3 className="text-xl font-bold text-gray-900 tracking-tight">
+                    {editingChef ? "编辑厨师" : "添加新厨师"}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={resetChefForm}
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  >
+                    <X size={18} strokeWidth={2.5} />
+                  </button>
+                </div>
+                <form onSubmit={handleChefSubmit} className="p-6 space-y-5">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1.5 block">厨师名称 *</label>
+                    <input
+                      type="text"
+                      value={chefName}
+                      onChange={(e) => setChefName(e.target.value)}
+                      placeholder="例如：余老师"
+                      className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base transition-shadow"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={resetChefForm}
+                      className="px-6 py-3 rounded-full text-[15px] font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                    >
+                      取消
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!chefName.trim() || chefSubmitting}
+                      className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-full text-[15px] font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md"
+                    >
+                      {chefSubmitting ? "保存中..." : (
+                        <>
+                          <Check size={18} strokeWidth={2.5} />
+                          {editingChef ? "保存修改" : "确认添加"}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {chefsLoading ? (
+            <div className="flex items-center justify-center min-h-[30vh]">
+              <div className="text-gray-400 font-medium tracking-wide">加载厨师列表中...</div>
+            </div>
+          ) : chefs.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                <ChefHat size={28} />
+              </div>
+              <p className="text-xl font-semibold text-gray-900 mb-2">还没有添加厨师</p>
+              <p className="text-gray-500">点击右上角「添加新厨师」开始管理</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {chefs.map((chef) => (
+                <div
+                  key={chef.id}
+                  className="group bg-white rounded-3xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shrink-0">
+                        <ChefHat size={22} className="text-amber-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-lg font-bold text-gray-900 truncate tracking-tight">{chef.name}</div>
+                        <div className="text-xs text-gray-400 font-medium">
+                          {new Date(chef.createdAt).toLocaleDateString("zh-CN", { month: "short", day: "numeric" })} 加入
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => handleChefEdit(chef)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-label="编辑厨师"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleChefDelete(chef.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                        aria-label="删除厨师"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ========== DISHES TAB ========== */}
+      {activeTab === "dishes" && (
+        <>
       {error ? (
         <div className="mb-8 rounded-2xl border border-red-200 bg-red-50/50 px-6 py-4 text-[15px] font-medium text-red-600 shadow-sm flex items-center justify-between">
           <span>{error}</span>
@@ -875,6 +1123,8 @@ export default function DishesPage() {
             </div>
           ))}
         </div>
+      )}
+        </>
       )}
     </div>
   );

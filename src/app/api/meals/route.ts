@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { ensureFixedChefs, resolveChefForWrite } from "@/lib/chef-service";
+import { resolveChefForWrite } from "@/lib/chef-service";
 import { serializeMealRecord, serializeMealRecords } from "@/lib/meal-response";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    await ensureFixedChefs();
     const meals = await prisma.mealRecord.findMany({
       include: {
         combo: {

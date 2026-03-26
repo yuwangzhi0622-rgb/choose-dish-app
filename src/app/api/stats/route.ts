@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { ensureFixedChefs } from "@/lib/chef-service";
-import { FIXED_CHEF_NAMES } from "@/lib/chef-catalog";
+import { getAllChefs } from "@/lib/chef-service";
 import { prisma } from "@/lib/prisma";
 
 function toDateString(date: Date) {
-  return date.toISOString().split("T")[0];
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function formatTrendLabel(dateStr: string) {
@@ -39,9 +41,8 @@ export async function GET(request: Request) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
-    const chefCatalog = await ensureFixedChefs();
+    const chefCatalog = await getAllChefs();
     const chefByName = new Map(chefCatalog.map((chef) => [chef.name, chef]));
-    const chefOrder = new Map<string, number>(FIXED_CHEF_NAMES.map((name, index) => [name, index]));
 
     // Calculate date range
     const now = new Date();
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
       endDate = temp;
     }
 
-    const startDateStr = startDate.toISOString().split("T")[0];
+    const startDateStr = toDateString(startDate);
     const endDateStr = toDateString(endDate);
 
     // Fetch meals within the period
@@ -201,10 +202,7 @@ export async function GET(request: Request) {
           return b.count - a.count;
         }
 
-        return (
-          (chefOrder.get(a.name) ?? Number.MAX_SAFE_INTEGER) -
-          (chefOrder.get(b.name) ?? Number.MAX_SAFE_INTEGER)
-        );
+        return a.name.localeCompare(b.name, "zh-CN");
       });
 
     return NextResponse.json({

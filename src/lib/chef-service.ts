@@ -1,22 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import {
-  FIXED_CHEF_NAMES,
-  isFixedChefName,
-  sortByChefCatalog,
-} from "@/lib/chef-catalog";
 
-export async function ensureFixedChefs() {
-  const chefs = await Promise.all(
-    FIXED_CHEF_NAMES.map((name) =>
-      prisma.chef.upsert({
-        where: { name },
-        update: {},
-        create: { name },
-      })
-    )
-  );
-
-  return sortByChefCatalog(chefs);
+export async function getAllChefs() {
+  return prisma.chef.findMany({ orderBy: { createdAt: "asc" } });
 }
 
 export async function resolveChefForWrite(chefId?: string | null) {
@@ -27,13 +12,11 @@ export async function resolveChefForWrite(chefId?: string | null) {
     };
   }
 
-  await ensureFixedChefs();
-
   const chef = await prisma.chef.findUnique({
     where: { id: chefId },
   });
 
-  if (!chef || !isFixedChefName(chef.name)) {
+  if (!chef) {
     throw new Error("请选择有效的厨师");
   }
 
