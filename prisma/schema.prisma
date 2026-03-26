@@ -81,6 +81,7 @@ model MealDish {
   mealRecordId String
   dishId       String
   quantity     Int        @default(1)
+  note         String?    @db.Text
   mealRecord   MealRecord @relation(fields: [mealRecordId], references: [id], onDelete: Cascade)
   dish         Dish       @relation(fields: [dishId], references: [id], onDelete: Cascade)
 

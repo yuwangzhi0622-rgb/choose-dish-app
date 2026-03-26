@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Check, Users, ChefHat } from "lucide-react";
+import { X, Check, Users, ChefHat, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { MEAL_TYPES } from "@/lib/image-utils";
 import { MealTypeIcon } from "@/components/CategoryIcon";
 
@@ -37,6 +37,18 @@ function getDefaultMealType() {
   return "snack";
 }
 
+const COMMON_REMARK_TAGS = [
+  "少盐", "少油", "不要辣", "微辣", "多放葱", "不要香菜",
+  "少糖", "多加醋", "不要蒜", "清淡", "多放肉", "少放肉",
+  "要嫩一点", "老一点", "加蛋", "不要味精",
+];
+
+interface DishInfo {
+  id: string;
+  name: string;
+  category: string;
+}
+
 interface MealRecordDialogProps {
   dishIds: string[];
   comboId?: string;
@@ -65,6 +77,9 @@ export default function MealRecordDialog({
   const [personCount, setPersonCount] = useState(2);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [dishes, setDishes] = useState<DishInfo[]>([]);
+  const [dishNotes, setDishNotes] = useState<Record<string, string>>({});
+  const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -84,6 +99,28 @@ export default function MealRecordDialog({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDishes = async () => {
+      try {
+        const res = await fetch("/api/dishes");
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data)) {
+          const uniqueIds = [...new Set(dishIds)];
+          const dishMap = new Map(data.map((d: DishInfo) => [d.id, d]));
+          setDishes(uniqueIds.map((id) => dishMap.get(id)).filter(Boolean) as DishInfo[]);
+        }
+      } catch {
+        // silent fail, dish names are a nice-to-have
+      }
+    };
+
+    void loadDishes();
+
+    return () => { cancelled = true; };
+  }, [dishIds]);
 
   useEffect(() => {
     let cancelled = false;
@@ -135,6 +172,9 @@ export default function MealRecordDialog({
           chefId,
           personCount,
           note: note.trim() || null,
+          dishNotes: Object.fromEntries(
+            Object.entries(dishNotes).filter(([, v]) => v.trim())
+          ),
         }),
       });
       const data = await res.json();
@@ -270,13 +310,85 @@ export default function MealRecordDialog({
             </div>
           </div>
 
-          {/* Notes */}
+          {/* Per-dish remarks */}
+          {dishes.length > 0 && (
+            <div>
+              <label className="text-xs font-semibold text-stone-500 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+                <MessageSquare size={14} strokeWidth={1.5} className="text-stone-400" /> 菜品备注
+              </label>
+              <div className="space-y-1.5">
+                {dishes.map((dish) => {
+                  const isExpanded = expandedDishId === dish.id;
+                  const currentNote = dishNotes[dish.id] || "";
+                  return (
+                    <div key={dish.id} className="rounded-xl border border-stone-100 overflow-hidden transition-all">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedDishId(isExpanded ? null : dish.id)}
+                        className="w-full flex items-center justify-between px-3 py-2.5 bg-stone-50 hover:bg-stone-100 transition-all text-left"
+                      >
+                        <span className="text-sm font-medium text-stone-700 flex items-center gap-1.5">
+                          {dish.name}
+                          {currentNote && <span className="w-1.5 h-1.5 rounded-full bg-stone-900" />}
+                        </span>
+                        {isExpanded ? <ChevronUp size={14} className="text-stone-400" /> : <ChevronDown size={14} className="text-stone-400" />}
+                      </button>
+                      {isExpanded && (
+                        <div className="px-3 py-3 bg-white space-y-2.5">
+                          <div className="flex flex-wrap gap-1.5">
+                            {COMMON_REMARK_TAGS.map((tag) => {
+                              const isActive = currentNote.includes(tag);
+                              return (
+                                <button
+                                  key={tag}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isActive) {
+                                      setDishNotes((prev) => ({
+                                        ...prev,
+                                        [dish.id]: prev[dish.id]?.replace(tag, "").replace(/[，,]\s*[，,]/g, "，").replace(/^[，,\s]+|[，,\s]+$/g, "").trim() || "",
+                                      }));
+                                    } else {
+                                      setDishNotes((prev) => ({
+                                        ...prev,
+                                        [dish.id]: prev[dish.id] ? `${prev[dish.id]}，${tag}` : tag,
+                                      }));
+                                    }
+                                  }}
+                                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all active:scale-95 ${
+                                    isActive
+                                      ? "bg-stone-900 text-white"
+                                      : "bg-stone-50 text-stone-500 border border-stone-100 hover:bg-stone-100 hover:border-stone-200"
+                                  }`}
+                                >
+                                  {tag}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <input
+                            type="text"
+                            value={currentNote}
+                            onChange={(e) => setDishNotes((prev) => ({ ...prev, [dish.id]: e.target.value }))}
+                            placeholder="自定义备注..."
+                            className="w-full px-3 py-2 rounded-lg bg-stone-50 border border-stone-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-stone-400 text-sm transition-all"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* General Notes */}
           <div>
-            <label className="text-xs font-semibold text-stone-500 mb-2 block uppercase tracking-wider">补充备注</label>
+            <label className="text-xs font-semibold text-stone-500 mb-2 block uppercase tracking-wider">整体备注</label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="如：少盐、不要香菜、微辣..."
+              placeholder="整体要求或特殊说明..."
               rows={2}
               className="w-full px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-stone-400 text-sm resize-none transition-all"
             />

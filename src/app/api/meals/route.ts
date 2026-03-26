@@ -30,7 +30,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { date, dishIds, comboId, note, mealType, mealTime, chefId, personCount } = body as {
+    const { date, dishIds, comboId, note, mealType, mealTime, chefId, personCount, dishNotes } = body as {
       date: string;
       dishIds: string[];
       comboId?: string;
@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       mealTime?: string;
       chefId: string;
       personCount?: number;
+      dishNotes?: Record<string, string>;
     };
 
     if (!date || !dishIds?.length) {
@@ -77,6 +78,7 @@ export async function POST(request: NextRequest) {
           create: Object.entries(dishQuantities).map(([dishId, quantity]) => ({
             dishId,
             quantity,
+            note: dishNotes?.[dishId]?.trim() || null,
           })),
         },
       },

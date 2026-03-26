@@ -18,6 +18,7 @@ interface Dish {
 interface MealDish {
   id: string;
   quantity: number;
+  note: string | null;
   dish: Dish;
 }
 
@@ -344,16 +345,18 @@ export default function HistoryPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap gap-1.5 mb-5">
+                    <div className="flex flex-col gap-1.5 mb-5">
                       {meal.mealDishes.map((md) => (
-                        <span
-                          key={md.id}
-                          className="bg-stone-50 text-stone-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-stone-100 inline-flex items-center gap-1.5"
-                        >
-                          <CategoryIcon category={md.dish.category} size={13} className="text-stone-400" />
-                          {md.dish.name}
-                          {md.quantity > 1 ? <span className="text-stone-300 font-semibold">×{md.quantity}</span> : ""}
-                        </span>
+                        <div key={md.id} className="flex flex-col">
+                          <span className="bg-stone-50 text-stone-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-stone-100 inline-flex items-center gap-1.5 w-max">
+                            <CategoryIcon category={md.dish.category} size={13} className="text-stone-400" />
+                            {md.dish.name}
+                            {md.quantity > 1 ? <span className="text-stone-300 font-semibold">×{md.quantity}</span> : ""}
+                          </span>
+                          {md.note && (
+                            <span className="text-[11px] text-stone-400 mt-0.5 ml-3">备注: {md.note}</span>
+                          )}
+                        </div>
                       ))}
                     </div>
 
