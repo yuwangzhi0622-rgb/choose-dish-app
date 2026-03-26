@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { ensureFixedChefs } from "@/lib/chef-service";
+import { FIXED_CHEF_NAMES } from "@/lib/chef-catalog";
 import { prisma } from "@/lib/prisma";
 
 function toDateString(date: Date) {
@@ -13,12 +15,33 @@ function formatTrendLabel(dateStr: string) {
   });
 }
 
+interface DishCounter {
+  id: string;
+  name: string;
+  count: number;
+  category: string;
+  imageUrl: string | null;
+}
+
+interface ChefAccumulator {
+  id: string;
+  name: string;
+  count: number;
+  ratingSum: number;
+  ratingCount: number;
+  dishes: Record<string, DishCounter>;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "week"; // 'week' | 'month' | 'all'
     const start = searchParams.get("start");
     const end = searchParams.get("end");
+
+    const chefCatalog = await ensureFixedChefs();
+    const chefByName = new Map(chefCatalog.map((chef) => [chef.name, chef]));
+    const chefOrder = new Map<string, number>(FIXED_CHEF_NAMES.map((name, index) => [name, index]));
 
     // Calculate date range
     const now = new Date();
@@ -58,6 +81,7 @@ export async function GET(request: Request) {
         },
       },
       include: {
+        chef: true,
         mealDishes: {
           include: {
             dish: true,
@@ -72,15 +96,45 @@ export async function GET(request: Request) {
     const dishFrequency: Record<string, { count: number; name: string; category: string; imageUrl: string | null }> = {};
     const trendMap: Record<string, number> = {};
     const mealTypeMap: Record<string, number> = {};
-    const chefMap: Record<string, number> = {};
+    const chefMap = new Map<string, ChefAccumulator>();
     let totalDishes = 0;
+
+    chefCatalog.forEach((chef) => {
+      chefMap.set(chef.id, {
+        id: chef.id,
+        name: chef.name,
+        count: 0,
+        ratingSum: 0,
+        ratingCount: 0,
+        dishes: {},
+      });
+    });
 
     meals.forEach((meal) => {
       trendMap[meal.date] = (trendMap[meal.date] || 0) + 1;
       mealTypeMap[meal.mealType] = (mealTypeMap[meal.mealType] || 0) + 1;
 
-      if (meal.chef) {
-        chefMap[meal.chef] = (chefMap[meal.chef] || 0) + 1;
+      const matchedChef = meal.chef ?? (meal.chefName ? chefByName.get(meal.chefName) ?? null : null);
+
+      if (matchedChef) {
+        const existingChef =
+          chefMap.get(matchedChef.id) ?? {
+            id: matchedChef.id,
+            name: matchedChef.name,
+            count: 0,
+            ratingSum: 0,
+            ratingCount: 0,
+            dishes: {},
+          };
+
+        existingChef.count += 1;
+
+        if (meal.feedbackRating) {
+          existingChef.ratingSum += meal.feedbackRating;
+          existingChef.ratingCount += 1;
+        }
+
+        chefMap.set(matchedChef.id, existingChef);
       }
 
       meal.mealDishes.forEach((md) => {
@@ -95,6 +149,22 @@ export async function GET(request: Request) {
           };
         }
         dishFrequency[md.dishId].count += md.quantity;
+
+        if (matchedChef) {
+          const chefStat = chefMap.get(matchedChef.id);
+          if (chefStat) {
+            if (!chefStat.dishes[md.dishId]) {
+              chefStat.dishes[md.dishId] = {
+                id: md.dishId,
+                count: 0,
+                name: md.dish.name,
+                category: md.dish.category,
+                imageUrl: md.dish.imageUrl,
+              };
+            }
+            chefStat.dishes[md.dishId].count += md.quantity;
+          }
+        }
       });
     });
 
@@ -112,10 +182,30 @@ export async function GET(request: Request) {
       .map(([mealType, count]) => ({ mealType, count }))
       .sort((a, b) => b.count - a.count);
 
-    const chefs = Object.entries(chefMap)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
+    const chefs = Array.from(chefMap.values())
+      .map((chef) => ({
+        id: chef.id,
+        name: chef.name,
+        count: chef.count,
+        avgRating:
+          chef.ratingCount === 0
+            ? null
+            : Number((chef.ratingSum / chef.ratingCount).toFixed(1)),
+        ratingCount: chef.ratingCount,
+        topDishes: Object.values(chef.dishes)
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 3),
+      }))
+      .sort((a, b) => {
+        if (b.count !== a.count) {
+          return b.count - a.count;
+        }
+
+        return (
+          (chefOrder.get(a.name) ?? Number.MAX_SAFE_INTEGER) -
+          (chefOrder.get(b.name) ?? Number.MAX_SAFE_INTEGER)
+        );
+      });
 
     return NextResponse.json({
       totalMeals,

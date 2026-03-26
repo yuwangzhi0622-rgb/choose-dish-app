@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { serializeFeedbackImages } from "@/lib/chef-service";
+import { serializeMealRecord } from "@/lib/meal-response";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
@@ -8,10 +10,11 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { orderStatus, feedbackRating, feedbackComment } = body as {
+    const { orderStatus, feedbackRating, feedbackComment, feedbackImages } = body as {
       orderStatus?: string;
       feedbackRating?: number | null;
       feedbackComment?: string | null;
+      feedbackImages?: string[] | null;
     };
 
     const validStatuses = ["pending", "accepted", "rejected", "completed"];
@@ -34,6 +37,20 @@ export async function PATCH(
       );
     }
 
+    if (
+      feedbackImages !== undefined &&
+      feedbackImages !== null &&
+      (!Array.isArray(feedbackImages) ||
+        feedbackImages.some(
+          (item) => typeof item !== "string" || !item.startsWith("data:image/")
+        ))
+    ) {
+      return NextResponse.json(
+        { error: "反馈图片格式无效" },
+        { status: 400 }
+      );
+    }
+
     const meal = await prisma.mealRecord.update({
       where: { id },
       data: {
@@ -42,13 +59,18 @@ export async function PATCH(
           feedbackRating === undefined ? undefined : (feedbackRating ?? null),
         feedbackComment:
           feedbackComment === undefined ? undefined : (feedbackComment || null),
+        feedbackImages:
+          feedbackImages === undefined
+            ? undefined
+            : serializeFeedbackImages(feedbackImages),
       },
       include: {
+        chef: true,
         mealDishes: { include: { dish: true } },
       },
     });
 
-    return NextResponse.json(meal);
+    return NextResponse.json(serializeMealRecord(meal));
   } catch (error) {
     return NextResponse.json(
       {

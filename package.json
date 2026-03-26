@@ -6,7 +6,8 @@
     "dev": "next dev --hostname 127.0.0.1 --port 3001",
     "prebuild": "prisma generate",
     "build": "next build",
-    "db:init": "prisma db push",
+    "db:init": "prisma db push && npm run db:seed:chefs",
+    "db:seed:chefs": "prisma db execute --file prisma/seed-chefs.sql",
     "postinstall": "prisma generate",
     "start": "next start --hostname 127.0.0.1 --port 3001",
     "lint": "eslint"

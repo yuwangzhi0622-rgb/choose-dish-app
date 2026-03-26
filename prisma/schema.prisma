@@ -46,21 +46,34 @@ model ComboDish {
   @@unique([comboId, dishId])
 }
 
+model Chef {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  avatar    String?      @db.LongText
+  createdAt DateTime     @default(now())
+  meals     MealRecord[]
+}
+
 model MealRecord {
-  id          String     @id @default(cuid())
-  date        String
-  mealType    String     @default("lunch")
-  mealTime    String?
-  chef        String?
-  personCount Int        @default(2)
-  orderStatus String     @default("pending")
-  feedbackRating Int?
-  feedbackComment String? @db.Text
-  note        String?    @db.Text
-  comboId     String?
-  createdAt   DateTime   @default(now())
-  combo       Combo?     @relation(fields: [comboId], references: [id], onDelete: SetNull)
-  mealDishes  MealDish[]
+  id              String     @id @default(cuid())
+  date            String
+  mealType        String     @default("lunch")
+  mealTime        String?
+  chefName        String?    @map("chef")
+  chefId          String?
+  personCount     Int        @default(2)
+  orderStatus     String     @default("pending")
+  feedbackRating  Int?
+  feedbackComment String?    @db.Text
+  feedbackImages  String?    @db.LongText
+  note            String?    @db.Text
+  comboId         String?
+  createdAt       DateTime   @default(now())
+  chef            Chef?      @relation(fields: [chefId], references: [id], onDelete: SetNull)
+  combo           Combo?     @relation(fields: [comboId], references: [id], onDelete: SetNull)
+  mealDishes      MealDish[]
+
+  @@index([chefId])
 }
 
 model MealDish {

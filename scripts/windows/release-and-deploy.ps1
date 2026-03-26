@@ -3,7 +3,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$ProjectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectDir = (Resolve-Path (Join-Path $PSScriptRoot "..\..\")).Path
 Set-Location $ProjectDir
 
 if (-not $CommitMessage) {

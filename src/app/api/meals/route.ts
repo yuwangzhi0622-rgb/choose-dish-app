@@ -1,19 +1,23 @@
 import { prisma } from "@/lib/prisma";
+import { ensureFixedChefs, resolveChefForWrite } from "@/lib/chef-service";
+import { serializeMealRecord, serializeMealRecords } from "@/lib/meal-response";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    await ensureFixedChefs();
     const meals = await prisma.mealRecord.findMany({
       include: {
         combo: {
           include: { comboDishes: { include: { dish: true } } },
         },
+        chef: true,
         mealDishes: { include: { dish: true } },
       },
       orderBy: [{ date: "desc" }, { createdAt: "desc" }],
     });
 
-    return NextResponse.json(meals);
+    return NextResponse.json(serializeMealRecords(meals));
   } catch (error) {
     return NextResponse.json(
       {
@@ -27,14 +31,14 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { date, dishIds, comboId, note, mealType, mealTime, chef, personCount } = body as {
+    const { date, dishIds, comboId, note, mealType, mealTime, chefId, personCount } = body as {
       date: string;
       dishIds: string[];
       comboId?: string;
       note?: string;
       mealType?: string;
       mealTime?: string;
-      chef?: string;
+      chefId: string;
       personCount?: number;
     };
 
@@ -44,6 +48,15 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    if (!chefId) {
+      return NextResponse.json(
+        { error: "请选择厨师" },
+        { status: 400 }
+      );
+    }
+
+    const chefData = await resolveChefForWrite(chefId);
 
     const dishQuantities = dishIds.reduce<Record<string, number>>((acc, dishId) => {
       acc[dishId] = (acc[dishId] ?? 0) + 1;
@@ -55,7 +68,8 @@ export async function POST(request: NextRequest) {
         date,
         mealType: mealType || "lunch",
         mealTime: mealTime || null,
-        chef: chef || null,
+        chefId: chefData.chefId,
+        chefName: chefData.chefName,
         personCount: personCount ?? 2,
         orderStatus: "pending",
         comboId,
@@ -68,11 +82,12 @@ export async function POST(request: NextRequest) {
         },
       },
       include: {
+        chef: true,
         mealDishes: { include: { dish: true } },
       },
     });
 
-    return NextResponse.json(meal, { status: 201 });
+    return NextResponse.json(serializeMealRecord(meal), { status: 201 });
   } catch (error) {
     return NextResponse.json(
       {

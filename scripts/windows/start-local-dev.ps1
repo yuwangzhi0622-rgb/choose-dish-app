@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$repoRoot = Split-Path -Parent $PSCommandPath
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\")).Path
 
 function Get-ListeningProcessId {
   param([int]$Port)

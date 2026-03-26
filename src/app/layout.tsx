@@ -16,7 +16,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -26,10 +25,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="min-h-full bg-gray-50">
+      <body className="min-h-full bg-gray-50/50 text-gray-900 selection:bg-orange-100 selection:text-orange-900">
         <Nav />
-        <main className="pb-24 md:pb-6 md:pl-64 min-h-screen">
-          <div className="max-w-4xl mx-auto px-4 pt-6">
+        <main className="min-h-screen">
+          <div className="max-w-[1024px] mx-auto px-4 sm:px-6 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-12">
             {children}
           </div>
         </main>
